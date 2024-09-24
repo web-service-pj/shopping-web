@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "192.168.64.3/test/frontend"
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
-        SCANNER_HOME = tool 'SonarQubeScanner' 
+        SCANNER_HOME = tool 'SonarQube Scanner' 
     }
     
     stages {
