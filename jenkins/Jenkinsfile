@@ -17,7 +17,7 @@ pipeline {
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image 'node:14'  // Node.js 버전을 프로젝트에 맞게 조정하세요
+                    image 'node:14'
                     args '-v $HOME/.npm:/root/.npm'
                 }
             }
@@ -31,15 +31,13 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('SonarQube') {
-                    dir('frontend') {
-                        sh """
-                            ${SCANNER_HOME}/bin/sonar-scanner \
-                            -Dsonar.projectKey=frontend-project \
-                            -Dsonar.sources=src \
-                            -Dsonar.exclusions=**/node_modules/**,**/*.spec.js \
-                            -Dsonar.javascript.lcov.reportPaths=coverage/lcov.info
-                        """
-                    }
+                    sh """
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=frontend-project \
+                        -Dsonar.sources=frontend/src \
+                        -Dsonar.exclusions=**/node_modules/**,**/*.spec.js \
+                        -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
+                    """
                 }
             }
         }
