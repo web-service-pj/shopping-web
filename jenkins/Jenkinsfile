@@ -36,7 +36,8 @@ pipeline {
                         -Dsonar.projectKey=frontend-project \
                         -Dsonar.sources=frontend/src \
                         -Dsonar.exclusions=**/node_modules/**,**/*.spec.js \
-                        -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info
+                        -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info \
+                        -Dsonar.java.binaries=/**/*.java
                     """
                 }
             }
