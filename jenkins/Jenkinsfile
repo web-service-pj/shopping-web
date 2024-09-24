@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_IMAGE = "192.168.64.3/test/frontend"
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
-        SCANNER_HOME = tool 'SonarQube Scanner' 
+        SCANNER_HOME = tool 'SonarQube Scanner'
     }
     
     stages {
@@ -15,8 +15,14 @@ pipeline {
         }
         
         stage('Install Dependencies') {
+            agent {
+                docker {
+                    image 'node:14'  // Node.js 버전을 프로젝트에 맞게 조정하세요
+                    args '-v $HOME/.npm:/root/.npm'
+                }
+            }
             steps {
-                dir('frontend') { 
+                dir('frontend') {
                     sh 'npm install'
                 }
             }
@@ -24,8 +30,8 @@ pipeline {
         
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') { 
-                    dir('frontend') { 
+                withSonarQubeEnv('SonarQube') {
+                    dir('frontend') {
                         sh """
                             ${SCANNER_HOME}/bin/sonar-scanner \
                             -Dsonar.projectKey=frontend-project \
@@ -69,6 +75,7 @@ pipeline {
                             docker run -d --name frontend -p 80:80 ${DOCKER_IMAGE}:${DOCKER_TAG} || exit 1
                             echo "Deployment completed"
                             docker ps | grep frontend || exit 1
+                        EOF
                     """
                 }
             }
