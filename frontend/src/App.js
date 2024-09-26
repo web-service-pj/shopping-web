@@ -5,6 +5,7 @@ import Notifications from './pages/notifications';
 import Raffles from './pages/raffles'
 import Stores from './pages/stores'
 import Editorial from './pages/editorial'
+import Login from './pages/login'
 
 function App() {
   return (
@@ -15,6 +16,7 @@ function App() {
         <Route path="/raffles" element={<Raffles />} />
         <Route path="/stores" element={<Stores />} />
         <Route path="/editorial" element={<Editorial />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
   );
