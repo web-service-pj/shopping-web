@@ -12,13 +12,14 @@ const ProductGrid = () => {
   ];
 
   return (
-    <div style={{display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', padding: '20px'}}>
-      {products.map((product, index) => (
-        <div key={index} className="Container" style={{width: '100%', aspectRatio: '463/601.89'}}>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5 p-5">
+      {products.map((product) => (
+        <div key={product} className="aspect-[463/601.89] w-full">
           <img 
             src={`https://via.placeholder.com/463x602?text=${product}`} 
-            alt={`Product ${index + 1}`} 
-            style={{width: '100%', height: '100%', objectFit: 'cover'}}
+            alt={`Product ${product}`} 
+            className="w-full h-full object-cover"
+            loading="lazy"
           />
         </div>
       ))}
