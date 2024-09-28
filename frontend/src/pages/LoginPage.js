@@ -1,8 +1,16 @@
 import React from 'react';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
+import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
+  const navigate = useNavigate();
+
+  const handleSignUp = () => {
+    navigate('/signup');
+  }
+
+
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
       <h2 className="text-2xl font-semibold mb-6">로그인</h2>
@@ -37,7 +45,7 @@ const LoginForm = () => {
         <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
           로그인
         </button>
-        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded">
+        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
           회원가입
         </button>
         <div className="text-center">
