@@ -1,6 +1,6 @@
 import React from 'react';
-import Header from '../components/header';
-import Footer from '../components/footer';
+import Header from '../components/common/header';
+import Footer from '../components/common/footer';
 
 const NotificationContent = () => (
   <div style={{padding: '40px 80px'}}>

@@ -1,10 +1,13 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import MainPage from './pages/MainPage';
-import Notifications from './pages/notifications'; 
-import Stores from './pages/stores'
-import Login from './pages/login'
-import Men from './pages/men'
+import Notifications from './pages/NotificationsPage'; 
+import Stores from './pages/StoresPage'
+import Login from './pages/LoginPage'
+import Men from './pages/MenPage'
+import Women from './pages/WomenPage'
+import Brand from './pages/BrandPage'
+import BrandProductPage from './pages/BrandProductPage';
 
 
 function App() {
@@ -16,6 +19,9 @@ function App() {
         <Route path="/stores" element={<Stores />} />
         <Route path="/login" element={<Login />} />
         <Route path="/men" element={<Men />} />
+        <Route path="/women" element={<Women />} />
+        <Route path="/brands" element={<Brand />} />
+        <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
       </Routes>
     </Router>
   );

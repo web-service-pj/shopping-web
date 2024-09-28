@@ -1,7 +1,7 @@
 import React from 'react';
 
-const SubCategoryNav = ({ gender, onCategoryChange, currentCategory }) => {
-  const categories = [
+const SubCategoryNav = ({ categories, onCategoryChange, currentCategory, useDynamicCategories = false }) => {
+  const defaultCategories = [
     { name: '전체', path: 'all' },
     { name: '아우터', path: 'outer' },
     { name: '티셔츠', path: 't-shirts' },
@@ -12,10 +12,12 @@ const SubCategoryNav = ({ gender, onCategoryChange, currentCategory }) => {
     { name: '악세사리', path: 'accessories' },
   ];
 
+  const displayCategories = useDynamicCategories ? categories : defaultCategories;
+
   return (
     <nav className="w-full bg-white bg-opacity-95 border-t border-b border-gray-100">
       <div className="flex justify-center gap-12 h-9 items-center px-8">
-        {categories.map((category) => (
+        {displayCategories.map((category) => (
           <button
             key={category.path}
             onClick={() => onCategoryChange(category.path)}

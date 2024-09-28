@@ -1,9 +1,9 @@
 import React from 'react';
-import Header from '../components/header';
-import Footer from '../components/footer';
-import SubCategoryNav from '../components/SubCategoryNav';
-import FilterSort from '../components/FilterSort';
-import ProductGrid from '../components/ProductGrid';
+import Header from '../components/common/header';
+import Footer from '../components/common/footer';
+import SubCategoryNav from '../components/product/SubCategoryNav';
+import FilterSort from '../components/product/FilterSort';
+import ProductGrid from '../components/product/ProductGrid';
 
 const CategoryPage = ({ gender, category, products, onCategoryChange, onSortChange, currentSort }) => {
   return (
