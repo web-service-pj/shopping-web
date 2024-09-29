@@ -76,7 +76,7 @@ pipeline {
             steps {
                 sshagent(['ssh-web-server-jcloud']) {
                     sh """
-                        scp -P ${SSH_PORT} image.tar ubuntu@${SERVER_IP}:~/
+                        scp -o StrictHostKeyChecking=no -P ${SSH_PORT} image.tar ubuntu@${SERVER_IP}:~/
                         ssh -o StrictHostKeyChecking=no -p ${SSH_PORT} ubuntu@${SERVER_IP} '
                             set -e
                             docker load < image.tar || exit 1
