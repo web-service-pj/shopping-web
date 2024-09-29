@@ -9,7 +9,7 @@ const bcrypt = require('bcrypt');
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
 
 // react 포트 맞추기
 const cors = require('cors');
