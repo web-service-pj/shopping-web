@@ -113,6 +113,18 @@ app.post('/login', async (req, res) => {
     }
 });
 
+app.get('/api/men-products', async (req, res) => {
+  try {
+    const menProducts = await Wear.findAll({
+      where: { w_gender: 0 }  // 0은 남성을 의미한다고 가정
+    });
+    res.json(menProducts);
+  } catch (error) {
+    console.error('남성 제품 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 app.listen(PORT, () => {
   console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 });
