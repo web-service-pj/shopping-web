@@ -1,15 +1,43 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import { useNavigate } from 'react-router-dom';
 
 const LoginForm = () => {
   const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSignUp = () => {
     navigate('/signup');
   }
 
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:5000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        localStorage.setItem('token', data.token);
+        localStorage.setItem('user', JSON.stringify(data.user));
+        alert('로그인 성공!');
+        navigate('/');  // 메인 페이지로 이동
+      } else {
+        alert(data.message);
+      }
+    } catch (error) {
+      console.error('로그인 오류:', error);
+      alert('로그인 중 오류가 발생했습니다.');
+    }
+  };
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6">

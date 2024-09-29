@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
+import { useNavigate } from 'react-router-dom';
 
 const PhoneInput = ({ value, onChange }) => {
     const [phone, setPhone] = useState({ part1: '', part2: '', part3: '' });
@@ -52,6 +53,7 @@ const PhoneInput = ({ value, onChange }) => {
   };
   
 const SignUpPage = () => {
+  const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     over14: false,
@@ -91,14 +93,44 @@ const SignUpPage = () => {
     }));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     if (isFormValid) {
       if (step === 1) {
         setStep(2);
       } else {
-        console.log('Form submitted', formData);
-        // Here you would typically send the data to your backend
+        try {
+          const response = await fetch('http://localhost:5000/register', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              name: formData.name,
+              email: formData.email,
+              phone: formData.phone,
+              password: formData.password,
+              gender: formData.gender,
+              address: formData.address
+            }),
+          });
+  
+          const data = await response.json();
+
+          if (response.ok) {
+            console.log('회원가입 성공:', data);
+            alert('회원가입에 성공했습니다!');
+            navigate('/');
+          } else {
+            console.error('회원가입 실패:', data.message);
+            alert(`회원가입에 실패했습니다: ${data.message}`);
+            navigate('/login');  // 로그인 페이지로 이동
+          }
+        } catch (error) {
+          console.error('회원가입 요청 중 오류 발생:', error);
+          alert('서버 오류가 발생했습니다. 나중에 다시 시도해주세요.');
+          navigate('/login');  // 로그인 페이지로 이동
+        }
       }
     }
   };
@@ -253,7 +285,6 @@ const SignUpPage = () => {
             <option value="">선택해주세요</option>
             <option value="male">남성</option>
             <option value="female">여성</option>
-            <option value="other">기타</option>
           </select>
         </div>
         <div>

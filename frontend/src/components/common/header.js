@@ -1,9 +1,29 @@
-import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
 const Header = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const currentPath = location.pathname.split('/')[1];
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [userName, setUserName] = useState('');
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    const user = JSON.parse(localStorage.getItem('user'));
+    if (token && user) {
+      setIsLoggedIn(true);
+      setUserName(user.name);
+    }
+  }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    setUserName('');
+    navigate('/');
+  };
 
   const isActive = (path) => currentPath === path;
 
@@ -30,7 +50,14 @@ const Header = () => {
               <span style={{color: '#1F2937', fontSize: 12}}>검색</span>
             </div>
             <Link to="/cart" style={{color: '#1F2937', fontSize: 12}}>장바구니</Link>
-            <Link to="/login" style={{color: '#1F2937', fontSize: 12}}>로그인</Link>
+            {isLoggedIn ? (
+              <>
+                <span style={{color: '#1F2937', fontSize: 12}}>{userName}님</span>
+                <button onClick={handleLogout} style={{color: '#1F2937', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer'}}>로그아웃</button>
+              </>
+            ) : (
+              <Link to="/login" style={{color: '#1F2937', fontSize: 12}}>로그인</Link>
+            )}
           </div>
         </div>
         <div style={{display: 'flex', justifyContent: 'center', gap: '48px', height: 36, alignItems: 'center'}}>
