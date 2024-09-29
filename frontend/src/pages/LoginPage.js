@@ -42,13 +42,15 @@ const LoginForm = () => {
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
       <h2 className="text-2xl font-semibold mb-6">로그인</h2>
-      <form className="space-y-4">
+      <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <label className="block text-sm mb-1">아이디</label>
           <input
             type="email"
             placeholder="이메일을 입력해주세요."
             className="w-full px-3 py-2 border border-gray-300 rounded"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
         </div>
         <div>
@@ -57,6 +59,8 @@ const LoginForm = () => {
             type="password"
             placeholder="비밀번호를 입력해주세요."
             className="w-full px-3 py-2 border border-gray-300 rounded"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
           />
         </div>
         <div className="flex justify-between items-center text-sm">
@@ -73,7 +77,7 @@ const LoginForm = () => {
         <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
           로그인
         </button>
-        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
+        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded">
           회원가입
         </button>
         <div className="text-center">

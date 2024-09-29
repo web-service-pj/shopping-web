@@ -53,7 +53,7 @@ const Header = () => {
             {isLoggedIn ? (
               <>
                 <span style={{color: '#1F2937', fontSize: 12}}>{userName}님</span>
-                <button onClick={handleLogout} style={{color: '#1F2937', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer'}}>로그아웃</button>
+                <button onClick={handleLogout} style={{color: '#1F2937', fontSize: 12, background: 'none', border: 'none', cursor: 'pointer'}}>마이페이지</button>
               </>
             ) : (
               <Link to="/login" style={{color: '#1F2937', fontSize: 12}}>로그인</Link>
