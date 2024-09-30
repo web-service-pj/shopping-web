@@ -1,19 +1,11 @@
 # Build stage
 FROM node:14 as build
 
-# Install build dependencies
-RUN apt-get update && apt-get install -y \
-    build-essential \
-    python
-
 WORKDIR /app
 
-# Install npm dependencies
 COPY package.json package-lock.json ./
-RUN npm cache clean --force
-RUN npm install --no-optional
+RUN npm install
 
-# Build the application
 COPY . .
 RUN npm run build
 
