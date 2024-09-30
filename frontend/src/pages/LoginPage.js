@@ -77,7 +77,7 @@ const LoginForm = () => {
         <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
           로그인
         </button>
-        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded">
+        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
           회원가입
         </button>
         <div className="text-center">
