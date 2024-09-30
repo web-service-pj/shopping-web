@@ -96,16 +96,25 @@ pipeline {
             steps {
                 sshagent(['ssh-web-server-jcloud']) {
                     sh """
-                        scp -P ${SSH_PORT} image.tar ubuntu@${SERVER_IP}:~/
+                        scp -o StrictHostKeyChecking=no -P ${SSH_PORT} image.tar ubuntu@${SERVER_IP}:~/
                         ssh -o StrictHostKeyChecking=no -p ${SSH_PORT} ubuntu@${SERVER_IP} '
                             set -e
                             docker load < image.tar || exit 1
-                            docker stop frontend || true
-                            docker rm frontend || true
-                            docker run -d --name frontend -p 80:80 ${DOCKER_IMAGE}:${DOCKER_TAG} || exit 1
-                            echo "Deployment completed"
-                            docker ps | grep frontend || exit 1
                             rm image.tar
+                            
+                            # Update the image tag in docker-compose.yaml
+                            sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|" docker-compose.yaml
+                            
+                            # Stop and remove existing containers
+                            docker-compose down
+                            
+                            # Start the updated containers
+                            docker-compose up -d
+                            
+                            # Verify the frontend container is running
+                            docker-compose ps | grep frontend || exit 1
+                            
+                            echo "Deployment completed"
                         '
                     """
                 }

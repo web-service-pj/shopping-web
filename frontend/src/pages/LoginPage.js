@@ -15,7 +15,7 @@ const LoginForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await fetch('http://10.0.0.70:3000/login', {
+      const response = await fetch('${process.env.EXPRESS_API_URL}/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
