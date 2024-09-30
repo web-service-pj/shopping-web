@@ -107,13 +107,13 @@ pipeline {
                             sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|" docker-compose.yaml
                             
                             # Stop and remove existing containers
-                            docker-compose down
+                            docker compose down
                             
                             # Start the updated containers
                             docker compose up -d
                             
                             # Verify the frontend container is running
-                            docker-compose ps | grep frontend || exit 1
+                            docker compose ps | grep frontend || exit 1
                             
                             echo "Deployment completed"
                         '
