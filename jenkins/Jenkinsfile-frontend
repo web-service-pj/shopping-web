@@ -60,7 +60,7 @@ pipeline {
             steps {
                 script {
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", 
-                    "--build-arg REACT_APP_API_URL=${apiUrl} -f frontend/Dockerfile ./frontend")
+                    "--build-arg REACT_APP_API_URL=${EXPRESS_API_URL} -f frontend/Dockerfile ./frontend")
                     docker.withRegistry('https://192.168.64.3', 'harbor-hyeongjun') {
                         docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
                     }
