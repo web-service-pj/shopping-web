@@ -19,14 +19,13 @@ pipeline {
         stage('Install Dependencies') {
             agent {
                 docker {
-                    image 'node:14-buster'
+                    image 'node:14'
                     args '-v $HOME/.npm:/root/.npm'
                 }
             }
             steps {
                 dir('backend') {
-                    sh 'npm config set unsafe-perm true'
-                    sh 'npm install --prefer-offline --no-audit --no-fund --loglevel verbose'
+                    sh 'npm install'
                 }
             }
         }
