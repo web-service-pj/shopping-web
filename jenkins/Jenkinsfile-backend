@@ -26,7 +26,7 @@ pipeline {
             steps {
                 dir('backend') {
                     sh 'npm config set unsafe-perm true'
-                    sh 'npm ci --prefer-offline --no-audit --no-fund --loglevel verbose'
+                    sh 'npm install --prefer-offline --no-audit --no-fund --loglevel verbose'
                 }
             }
         }
