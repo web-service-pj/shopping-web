@@ -25,7 +25,6 @@ pipeline {
             }
             steps {
                 dir('backend') {
-                    sh 'npm cache clean --force'
                     sh 'npm install'
                 }
             }
