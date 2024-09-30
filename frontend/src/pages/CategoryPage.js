@@ -5,7 +5,7 @@ import SubCategoryNav from '../components/product/SubCategoryNav';
 import FilterSort from '../components/product/FilterSort';
 import ProductGrid from '../components/product/ProductGrid';
 
-const CategoryPage = ({ gender, category, products, onCategoryChange, onSortChange, currentSort }) => {
+const CategoryPage = ({ gender, category, products, onCategoryChange, onSortChange, currentSort, onProductClick }) => {
   return (
     <div className="CategoryPage">
       <Header />
@@ -15,7 +15,7 @@ const CategoryPage = ({ gender, category, products, onCategoryChange, onSortChan
         currentCategory={category} 
       />
       <FilterSort onSortChange={onSortChange} currentSort={currentSort} />
-      <ProductGrid products={products} />
+      <ProductGrid products={products} onProductClick={onProductClick} />
       <Footer />
     </div>
   );

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import { Carousel } from 'react-responsive-carousel';
@@ -6,20 +7,16 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 const ProductDetailPage = () => {
 //   const { productName } = useParams();
-  const [selectedSize, setSelectedSize] = useState('');
+    const location = useLocation();
+    const product = location.state?.product;
+    const [selectedSize, setSelectedSize] = useState('');
 
-  const product = {
-    brand: 'ASICS',
-    name: 'OUTDOOR DOWN JACKT',
-    subname: 'PERFORMANCE BLACK',
-    description: '아웃도어 다운 자켓 퍼포먼스 블랙',
-    code: 'AS24FWJAJH05787003',
-    price: '443,000원',
-    sizes: ['M', 'L', 'XL'],
-    modelInfo: '키/몸무게: 183cm / 57kg',
-    wearingSize: '착용 사이즈 : L',
-    images: ['/OUTDOOR DOWN JACKT.jpg', '/image2.jpg', '/image3.jpg'] 
-  };
+    if (!product) {
+        return <div>Product not found</div>;
+      }
+      const images = product.w_path.split(',').map(path => path.trim());
+      const sizes = product.w_size.split(';').map(size => size.trim());    
+
 
   return (
     <div className="ProductDetailPage">
@@ -29,7 +26,7 @@ const ProductDetailPage = () => {
           {/* 이미지 슬라이더 */}
           <div className="w-full md:w-1/2 px-4 mb-8">
             <Carousel showArrows={true} showStatus={false} showThumbs={false}>
-              {product.images.map((img, index) => (
+              {images.map((img, index) => (
                 <div key={index}>
                   <img src={img} alt={`${product.name} - ${index + 1}`} />
                 </div>
@@ -45,13 +42,11 @@ const ProductDetailPage = () => {
             </div>
             <p className="text-sm text-gray-600 mb-2">신상품</p>
             <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
-            <h2 className="text-xl mb-2">{product.subname}</h2>
-            <p className="mb-2">{product.description}</p>
-            <p className="mb-4">{product.code}</p>
-            <p className="text-2xl font-bold mb-4">정상가 {product.price}</p>
+            <p className="mb-4">{product.w_code}</p>
+            <p className="text-2xl font-bold mb-4">정상가 {`${product.w_price.toLocaleString()}원`}</p>
             
             <div className="flex mb-4">
-              {product.sizes.map(size => (
+              {sizes.map(size => (
                 <button 
                   key={size}
                   className={`mr-2 px-4 py-2 border ${selectedSize === size ? 'bg-black text-white' : ''}`}
@@ -61,9 +56,11 @@ const ProductDetailPage = () => {
                 </button>
               ))}
             </div>
-            
-            <p className="mb-2">{product.modelInfo}</p>
-            <p className="mb-4">{product.wearingSize}</p>
+
+            <p className="mb-4">{`재고: ${product.w_stock}`}</p>
+
+            <p className="mb-2">키/몸무게: 183 / 57kg</p>
+            <p className="mb-4">착용 사이즈: L</p>
             
             <button className="text-gray-700 mb-4 block underline hover:text-gray-900">사이즈 가이드</button>
             <button className="text-gray-700 mb-4 block underline hover:text-gray-900">상품 정보 고시</button>
