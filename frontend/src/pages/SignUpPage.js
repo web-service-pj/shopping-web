@@ -100,7 +100,7 @@ const SignUpPage = () => {
         setStep(2);
       } else {
         try {
-          const response = await fetch('${process.env.EXPRESS_API_URL}/register', {
+          const response = await fetch('http://113.198.66.75:13070/register', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
