@@ -7,7 +7,7 @@ WORKDIR /usr/src/app
 # package.json과 package-lock.json을 모두 복사합니다
 COPY package*.json ./
 
-RUN npm ci
+RUN npm install --verbose
 
 # 앱 소스 복사
 COPY . .
