@@ -16,6 +16,13 @@ pipeline {
             }
         }
         
+    stage('Cleanup') {
+        steps {
+            sh 'rm -rf node_modules'
+            sh 'rm -f package-lock.json'
+        }
+    }
+        
         stage('Install Dependencies') {
             agent {
                 docker {
