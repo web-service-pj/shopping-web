@@ -6,6 +6,7 @@ const Wear = require('./models/wear');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
+const { Sequelize } = require('sequelize');
 
 dotenv.config();
 
@@ -142,6 +143,40 @@ app.get('/api/women-products', async (req, res) => {
     res.json(womenProducts);
   } catch (error) {
     console.error('여성 제품 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+app.get('/api/brands', async (req, res) => {
+  try {
+    const brands = await Wear.findAll({
+      attributes: [
+        [Sequelize.fn('DISTINCT', Sequelize.col('w_brand')), 'w_brand'],
+        [Sequelize.literal('MAX(CASE WHEN w_date >= DATE_SUB(NOW(), INTERVAL 1 MONTH) THEN 1 ELSE 0 END)'), 'isNew']
+      ],
+      group: ['w_brand'],
+      order: [['w_brand', 'ASC']]
+    });
+    res.json(brands);
+  } catch (error) {
+    console.error('브랜드 목록 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+app.get('/api/brand-products/:brandName', async (req, res) => {
+  try {
+    const { brandName } = req.params;
+    const brandProducts = await Wear.findAll({
+      where: {
+        w_brand: {
+          [Op.like]: `%${brandName}%`
+        }
+      }
+    });
+    res.json(brandProducts);
+  } catch (error) {
+    console.error('브랜드 제품 조회 실패:', error);
     res.status(500).json({ message: '서버 오류' });
   }
 });

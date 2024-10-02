@@ -7,26 +7,23 @@ const BrandPage = () => {
   const [brands, setBrands] = useState([]);
 
   useEffect(() => {
-    // 실제로는 API에서 브랜드 목록을 가져와야 합니다.
-    setBrands([
-      { name: '032C', isNew: false },
-      { name: 'A.D.E.D.', isNew: false },
-      { name: 'AAUXX', isNew: false },
-      { name: 'ACE TRUCK MFG', isNew: false },
-      { name: 'ADIDAS', isNew: true },
-      { name: 'AFFXWRKS', isNew: false },
-      { name: 'AIME LEON DORE', isNew: false },
-      { name: 'ALLTIMERS', isNew: false },
-      { name: 'ALWAYS DO WHAT YOU SHOULD', isNew: false },
-      { name: 'AMFM EQUIPMENT', isNew: false },
-      { name: 'APOTHEKE FRAGRANCE', isNew: false },
-      { name: 'APRIL', isNew: false },
-      { name: 'ARC\'TERYX', isNew: true },
-      { name: 'ARCHIES', isNew: false },
-      { name: 'ARIES', isNew: false },
-      { name: 'ASICS', isNew: true },
-      // ... 더 많은 브랜드 추가
-    ]);
+    const fetchBrands = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/brands');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        setBrands(data.map(brand => ({
+          name: brand.w_brand,
+          isNew: brand.isNew === 1
+        })));
+      } catch (error) {
+        console.error('Error fetching brands:', error);
+      }
+    };
+
+    fetchBrands();
   }, []);
 
   const chunkArray = (array, size) => {
@@ -50,7 +47,7 @@ const BrandPage = () => {
               {column.map((brand, index) => (
                 <div key={index} className="mb-3 flex items-center">
                 <Link
-                to={`/brands/${brand.name.toLowerCase()}/products`}
+                to={`/brands/${encodeURIComponent(brand.name)}/products`}
                 className="text-gray-800 text-sm hover:text-gray-600 flex items-center"
                 >
                 <span className="mr-2">☐</span>
