@@ -5,6 +5,7 @@ const User = require('./models/user');
 const Wear = require('./models/wear');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const { Op } = require('sequelize');
 
 dotenv.config();
 
@@ -116,11 +117,31 @@ app.post('/login', async (req, res) => {
 app.get('/api/men-products', async (req, res) => {
   try {
     const menProducts = await Wear.findAll({
-      where: { w_gender: 0 }  // 0은 남성을 의미한다고 가정
+      where: {
+        w_gender: {
+          [Op.or]: [0, 2]
+        }
+      }
     });
     res.json(menProducts);
   } catch (error) {
     console.error('남성 제품 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+app.get('/api/women-products', async (req, res) => {
+  try {
+    const womenProducts = await Wear.findAll({
+      where: {
+        w_gender: {
+          [Op.or]: [1, 2]
+        }
+      }
+    });
+    res.json(womenProducts);
+  } catch (error) {
+    console.error('여성 제품 조회 실패:', error);
     res.status(500).json({ message: '서버 오류' });
   }
 });

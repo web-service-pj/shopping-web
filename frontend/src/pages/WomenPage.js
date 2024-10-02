@@ -1,20 +1,37 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import CategoryPage from './CategoryPage';
 import { useProductSort } from '../components/product/UseProductSort';
 
-const initialProducts = [
-  { image: '/OUTDOOR DOWN JACKT.jpg', brand: 'ASICS', name: 'OUTDOOR DOWN JACKT', price: '443,000원', category: 'outer', wDate: '2023-09-15', w_volume: 100 },
-  { image: '/LIGHTWEIGHT DOWN JACKET.jpg', brand: 'ASICS', name: 'LIGHTWEIGHT DOWN JACKET', price: '159,000원', category: 'outer', wDate: '2023-09-10', w_volume: 150 },
-  { image: '/LIGHTWEIGHT DOWN VEST.jpg', brand: 'ASICS', name: 'LIGHTWEIGHT DOWN VEST', price: '139,000원', category: 'outer', wDate: '2023-09-05', w_volume: 80 },
-  { image: '/BASIC TSHIRT.jpg', brand: 'NIKE', name: 'BASIC TSHIRT', price: '39,000원', category: 't-shirts', wDate: '2023-09-20', w_volume: 200 },
-  { image: '/SLIM FIT JEANS.jpg', brand: 'LEVI\'S', name: 'SLIM FIT JEANS', price: '89,000원', category: 'pants', wDate: '2023-09-01', w_volume: 120 },
-];
-
 const WomenPage = () => {
+  const navigate = useNavigate();
   const [currentCategory, setCurrentCategory] = useState('all');
-  const allProducts = useMemo(() => initialProducts, []);
+  const { sortedProducts, sortOption, handleSortChange, setProducts } = useProductSort([]);
 
-  const { sortedProducts, sortOption, handleSortChange, setProducts } = useProductSort(allProducts);
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:5000/api/women-products');
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const data = await response.json();
+        const formattedProducts = data.map(product => ({
+          ...product,
+          image: product.w_path.split(',')[0].trim(),
+          brand: product.w_brand,
+          name: product.w_name,
+          price: `${product.w_price.toLocaleString()}원`,
+          category: product.w_category,
+        }));
+        setProducts(formattedProducts);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, [setProducts]);
 
   const filteredProducts = useMemo(() => {
     return currentCategory === 'all'
@@ -26,9 +43,9 @@ const WomenPage = () => {
     setCurrentCategory(category);
   };
 
-  useEffect(() => {
-    setProducts(allProducts);
-  }, [setProducts, allProducts]);
+  const handleProductClick = (product) => {
+    navigate(`/women/${product.w_code}`, { state: { product } });
+  };
 
   return (
     <CategoryPage 
@@ -38,6 +55,7 @@ const WomenPage = () => {
       onCategoryChange={handleCategoryChange}
       onSortChange={handleSortChange}
       currentSort={sortOption}
+      onProductClick={handleProductClick}
     />
   );
 };
