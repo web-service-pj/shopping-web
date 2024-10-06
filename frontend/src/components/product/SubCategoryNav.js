@@ -6,7 +6,7 @@ const SubCategoryNav = ({ categories, onCategoryChange, currentCategory, useDyna
     { name: '아우터', path: 'outer' },
     { name: '티셔츠', path: 't-shirts' },
     { name: '바지', path: 'pants' },
-    { name: '모자', path: 'hats' },
+    { name: '모자', path: 'hat' },
     { name: '가방', path: 'bags' },
     { name: '신발', path: 'shoes' },
     { name: '악세사리', path: 'accessories' },
