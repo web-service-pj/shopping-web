@@ -12,7 +12,7 @@ const categoryNames = {
   outer: '아우터',
   't-shirts': '티셔츠',
   pants: '바지',
-  hats: '모자',
+  hat: '모자',
   bags: '가방',
   shoes: '신발',
   accessories: '악세사리',
@@ -43,7 +43,7 @@ const BrandProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://localhost:5000/api/brand-products/${encodeURIComponent(brandName)}`);
+        const response = await fetch(`http://113.198.66.75:13070/api/brand-products/${encodeURIComponent(brandName)}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
