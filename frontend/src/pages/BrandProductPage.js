@@ -43,7 +43,7 @@ const BrandProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://10.109.123.76:30090/api/brand-products/${encodeURIComponent(brandName)}`);
+        const response = await fetch(`http://10.109.123.76:80/api/brand-products/${encodeURIComponent(brandName)}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

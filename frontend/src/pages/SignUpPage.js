@@ -100,7 +100,7 @@ const SignUpPage = () => {
         setStep(2);
       } else {
         try {
-          const response = await fetch('http://10.109.123.76:30090/api/register', {
+          const response = await fetch('http://10.109.123.76:80/api/register', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
