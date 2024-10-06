@@ -6,17 +6,16 @@ import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 
 const ProductDetailPage = () => {
-//   const { productName } = useParams();
-    const location = useLocation();
-    const product = location.state?.product;
-    const [selectedSize, setSelectedSize] = useState('');
+  const location = useLocation();
+  const product = location.state?.product;
+  const [selectedSize, setSelectedSize] = useState('');
 
-    if (!product) {
-        return <div>Product not found</div>;
-      }
-      const images = product.w_path.split(',').map(path => path.trim());
-      const sizes = product.w_size.split(';').map(size => size.trim());    
+  if (!product) {
+    return <div>Product not found</div>;
+  }
 
+  const images = product.w_path.split(',').map(path => path.trim());
+  const sizes = product.w_size.split(';').map(size => size.trim());
 
   return (
     <div className="ProductDetailPage">

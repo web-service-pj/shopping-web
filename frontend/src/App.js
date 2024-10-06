@@ -28,6 +28,7 @@ function App() {
         <Route path="/women/:productName" element={<ProductDetailPage gender="women" />} /> 
         <Route path="/brands" element={<Brand />} />
         <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
+        <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />
       </Routes>
     </Router>
   );
