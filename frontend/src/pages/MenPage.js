@@ -11,7 +11,7 @@ const MenPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://113.198.66.75:13070/api/men-products');
+        const response = await fetch('http://10.109.123.76:30090/api/men-products');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

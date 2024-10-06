@@ -9,7 +9,7 @@ const BrandPage = () => {
   useEffect(() => {
     const fetchBrands = async () => {
       try {
-        const response = await fetch('http://localhost:5000/api/brands');
+        const response = await fetch('http://10.109.123.76:30090/api/brands');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }

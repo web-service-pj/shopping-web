@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 // react 포트 맞추기
 const cors = require('cors');
 app.use(cors({
-    origin: 'http://113.198.66.75:18076', // React 앱의 주소
+    origin: 'http://113.198.66.75:10113', // React 앱의 주소
     credentials: true,
   }));
 
@@ -62,7 +62,7 @@ app.get('/wears', async (req, res) => {
     }
 });
 
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
     try {
       const { name, email, phone, password, gender, address } = req.body;
   
@@ -92,7 +92,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ where: { userid: email } });
