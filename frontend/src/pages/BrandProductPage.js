@@ -12,7 +12,7 @@ const categoryNames = {
   outer: '아우터',
   't-shirts': '티셔츠',
   pants: '바지',
-  hats: '모자',
+  hat: '모자',
   bags: '가방',
   shoes: '신발',
   accessories: '악세사리',
