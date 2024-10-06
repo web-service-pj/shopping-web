@@ -16,7 +16,7 @@ const PORT = process.env.PORT || 3000;
 // react 포트 맞추기
 const cors = require('cors');
 app.use(cors({
-    origin: 'http://113.198.66.75:10113', // React 앱의 주소
+    origin: 'http://10.105.25.52:80', // React 앱의 주소
     credentials: true,
   }));
 
