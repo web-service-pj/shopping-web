@@ -2,11 +2,13 @@ import React, { useState } from 'react';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import { useNavigate } from 'react-router-dom';
+import { checkTokenExpiration } from '../utils/auth';
 
 const LoginForm = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
 
   const handleSignUp = () => {
     navigate('/signup');
@@ -14,8 +16,15 @@ const LoginForm = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+
+    if (!email || !password) {
+      setError('이메일과 비밀번호를 모두 입력해주세요.');
+      return;
+    }
+
     try {
-      const response = await fetch('http://localhost:5000/login', {
+      const response = await fetch('http://localhost:5000/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,20 +37,22 @@ const LoginForm = () => {
       if (response.ok) {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify(data.user));
+        checkTokenExpiration();
         alert('로그인 성공!');
         navigate('/');  // 메인 페이지로 이동
       } else {
-        alert(data.message);
+        setError(data.message || '로그인에 실패했습니다.');
       }
     } catch (error) {
       console.error('로그인 오류:', error);
-      alert('로그인 중 오류가 발생했습니다.');
+      setError('서버와의 통신 중 오류가 발생했습니다.');
     }
   };
 
   return (
     <div className="max-w-md mx-auto mt-8 p-6">
       <h2 className="text-2xl font-semibold mb-6">로그인</h2>
+      {error && <p className="text-red-500 mb-4">{error}</p>}
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <label className="block text-sm mb-1">아이디</label>
@@ -51,6 +62,8 @@ const LoginForm = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            maxLength="50"
+            required
           />
         </div>
         <div>
@@ -61,6 +74,8 @@ const LoginForm = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            maxLength="100"
+            required
           />
         </div>
         <div className="flex justify-between items-center text-sm">

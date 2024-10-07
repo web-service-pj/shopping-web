@@ -6,6 +6,7 @@ import SubCategoryNav from '../components/product/SubCategoryNav';
 import FilterSort from '../components/product/FilterSort';
 import ProductGrid from '../components/product/ProductGrid';
 import { useProductSort } from '../components/product/UseProductSort';
+import { checkTokenExpiration } from '../utils/auth';
 
 const categoryNames = {
   all: '전체',
@@ -64,9 +65,12 @@ const BrandProductPage = () => {
     };
 
     fetchProducts();
+
+    const interval = setInterval(checkTokenExpiration, 60000); // 1분마다 체크
+    return () => clearInterval(interval);
   }, [brandName, setSortProducts]);
 
-  const handleCategoryChange = (category) => {
+    const handleCategoryChange = (category) => {
     setCurrentCategory(category);
   };
 

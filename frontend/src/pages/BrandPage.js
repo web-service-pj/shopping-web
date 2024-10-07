@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
+import { checkTokenExpiration } from '../utils/auth';
 
 const BrandPage = () => {
   const [brands, setBrands] = useState([]);
@@ -24,6 +25,9 @@ const BrandPage = () => {
     };
 
     fetchBrands();
+
+    const interval = setInterval(checkTokenExpiration, 60000); // 1분마다 체크
+    return () => clearInterval(interval);
   }, []);
 
   const chunkArray = (array, size) => {

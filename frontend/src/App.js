@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect }  from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { checkTokenExpiration } from './utils/auth';
 import MainPage from './pages/MainPage';
 import Notifications from './pages/NotificationsPage'; 
 import Stores from './pages/StoresPage'
@@ -14,6 +15,12 @@ import ProductDetailPage from './pages/ProductDetailPage';
 
 
 function App() {
+  useEffect(() => {
+    checkTokenExpiration();
+    const interval = setInterval(checkTokenExpiration, 60000); // 1분마다 체크
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <Router>
       <Routes>
