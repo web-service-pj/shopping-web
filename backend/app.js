@@ -41,7 +41,7 @@ sequelize.authenticate()
   });
 
 // 사용자 조회 테스트 라우트
-app.get('/users', async (req, res) => {
+app.get('/api/users', async (req, res) => {
   try {
     const users = await User.findAll();
     res.json(users);
@@ -52,7 +52,7 @@ app.get('/users', async (req, res) => {
 });
 
 // Wear 모델 테스트 라우트
-app.get('/wears', async (req, res) => {
+app.get('/api/wears', async (req, res) => {
     try {
       const wears = await Wear.findAll();
       res.json(wears);
@@ -62,7 +62,7 @@ app.get('/wears', async (req, res) => {
     }
 });
 
-app.post('/register', async (req, res) => {
+app.post('/api/register', async (req, res) => {
     try {
       const { name, email, phone, password, gender, address } = req.body;
   
@@ -92,7 +92,7 @@ app.post('/register', async (req, res) => {
     }
 });
 
-app.post('/login', async (req, res) => {
+app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
       const user = await User.findOne({ where: { userid: email } });
@@ -115,7 +115,7 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.get('/men-products', async (req, res) => {
+app.get('/api/men-products', async (req, res) => {
   try {
     const menProducts = await Wear.findAll({
       where: {
@@ -131,7 +131,7 @@ app.get('/men-products', async (req, res) => {
   }
 });
 
-app.get('/women-products', async (req, res) => {
+app.get('/api/women-products', async (req, res) => {
   try {
     const womenProducts = await Wear.findAll({
       where: {
@@ -147,7 +147,7 @@ app.get('/women-products', async (req, res) => {
   }
 });
 
-app.get('/brands', async (req, res) => {
+app.get('/api/brands', async (req, res) => {
   try {
     const brands = await Wear.findAll({
       attributes: [
@@ -164,7 +164,7 @@ app.get('/brands', async (req, res) => {
   }
 });
 
-app.get('/brand-products/:brandName', async (req, res) => {
+app.get('/api/brand-products/:brandName', async (req, res) => {
   try {
     const { brandName } = req.params;
     const brandProducts = await Wear.findAll({
