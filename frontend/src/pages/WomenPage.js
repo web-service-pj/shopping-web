@@ -11,7 +11,7 @@ const WomenPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://113.198.66.75:10113/api/women-products');
+        const response = await fetch('/api/women-products');
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
