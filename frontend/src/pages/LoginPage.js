@@ -44,8 +44,8 @@ const LoginForm = () => {
         setError(data.message || '로그인에 실패했습니다.');
       }
     } catch (error) {
-      console.error('로그인 오류:', error);
-      setError('서버와의 통신 중 오류가 발생했습니다.');
+      console.error('로그인 오류:', error.message, error.stack);
+      setError('서버와의 통신 중 오류가 발생했습니다.' + error.message);
     }
   };
 
