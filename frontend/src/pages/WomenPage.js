@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import CategoryPage from './CategoryPage';
 import { useProductSort } from '../components/product/UseProductSort';
+import { checkTokenExpiration } from '../utils/auth';
 
 const WomenPage = () => {
   const navigate = useNavigate();
@@ -31,6 +32,9 @@ const WomenPage = () => {
     };
 
     fetchProducts();
+
+    const interval = setInterval(checkTokenExpiration, 60000); // 1분마다 체크
+    return () => clearInterval(interval);
   }, [setProducts]);
 
   const filteredProducts = useMemo(() => {
