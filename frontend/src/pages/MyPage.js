@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Header from '../components/common/header';
+import Footer from '../components/common/footer';
 import api from '../utils/api';
 import { checkTokenExpiration } from '../utils/auth';
 
@@ -46,6 +48,7 @@ const MyPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Header />
       <h1 className="text-3xl font-bold mb-8">WORKSOUT</h1>
       
       <nav className="mb-8">
@@ -149,6 +152,7 @@ const MyPage = () => {
           </div>
         </main>
       </div>
+      <Footer />
     </div>
   );
 };
