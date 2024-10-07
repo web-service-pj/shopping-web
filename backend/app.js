@@ -138,6 +138,45 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// 토큰 검증
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) return res.sendStatus(403);
+    req.user = user;
+    next();
+  });
+};
+
+app.get('/api/user', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    res.json({
+      id: user.useridx,
+      email: user.userid,
+      name: user.username,
+      gender: user.usergender === 1 ? '여성' : '남성',
+      phone: user.userphone,
+      address: user.useraddress,
+      registrationDate: user.userregdate
+    });
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
 app.get('/api/men-products', async (req, res) => {
   try {
     const menProducts = await Wear.findAll({
