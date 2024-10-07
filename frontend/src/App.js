@@ -10,7 +10,6 @@ import Women from './pages/WomenPage'
 import Brand from './pages/BrandPage'
 import BrandProductPage from './pages/BrandProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-import MyPage from './pages/MyPage';
 
 
 
@@ -30,8 +29,6 @@ function App() {
         <Route path="/brands" element={<Brand />} />
         <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
         <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />
-        <Route path="/mypage" element={<MyPage />} />
-        
       </Routes>
     </Router>
   );
