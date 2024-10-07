@@ -34,8 +34,8 @@ const LoginForm = () => {
         alert(data.message);
       }
     } catch (error) {
-      console.error('로그인 오류:', error);
-      alert('로그인 중 오류가 발생했습니다.');
+      console.error('로그인 오류:', error.message, error.stack);
+      alert('로그인 중 오류가 발생했습니다: ' + error.message);
     }
   };
 
