@@ -24,7 +24,7 @@ const MyPage = () => {
     const fetchUserInfo = async () => {
       try {
         checkTokenExpiration();
-        const response = await api.fetch('http://localhost:5000/api/user');
+        const response = await api.fetch('http://113.198.66.75:13070/api/user');
 
         if (!response.ok) {
           throw new Error('Failed to fetch user info');
