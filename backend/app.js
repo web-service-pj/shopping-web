@@ -11,7 +11,7 @@ const { Sequelize } = require('sequelize');
 dotenv.config();
 
 const app = express();
-const PORT = 8080;
+const PORT = 3000;
 
 // react 포트 맞추기
 const cors = require('cors');
