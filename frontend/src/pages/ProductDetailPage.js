@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
@@ -9,13 +9,30 @@ const ProductDetailPage = () => {
   const location = useLocation();
   const product = location.state?.product;
   const [selectedSize, setSelectedSize] = useState('');
+  const [sizeStock, setSizeStock] = useState({});
+
+  useEffect(() => {
+    if (product && product.w_size && product.w_stock) {
+      const splitString = (str) => str.split(/[;,]/).map(item => item.trim());
+      
+      const sizes = splitString(product.w_size);
+      const stocks = splitString(product.w_stock);
+      
+      const sizeStockObj = {};
+      stocks.forEach(stock => {
+        const [size, quantity] = stock.split(':').map(item => item.trim());
+        sizeStockObj[size] = quantity || '0';
+      });
+      setSizeStock(sizeStockObj);
+    }
+  }, [product]);
 
   if (!product) {
     return <div>Product not found</div>;
   }
 
   const images = product.w_path.split(',').map(path => path.trim());
-  const sizes = product.w_size.split(';').map(size => size.trim());
+  const sizes = Object.keys(sizeStock);
 
   return (
     <div className="ProductDetailPage">
@@ -56,7 +73,9 @@ const ProductDetailPage = () => {
               ))}
             </div>
 
-            <p className="mb-4">{`재고: ${product.w_stock}`}</p>
+            {selectedSize && (
+              <p className="mb-4">재고: {sizeStock[selectedSize]}</p>
+            )}
             
             <p className="mb-2">키/몸무게: 183 / 57kg</p>
             <p className="mb-4">착용 사이즈: L</p>
