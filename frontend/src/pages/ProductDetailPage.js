@@ -75,7 +75,7 @@ const ProductDetailPage = () => {
 
             {selectedSize && (
               <p className="mb-4">재고: {sizeStock[selectedSize]}</p>
-            )}
+            )} 
             
             <p className="mb-2">키/몸무게: 183 / 57kg</p>
             <p className="mb-4">착용 사이즈: L</p>
