@@ -10,12 +10,12 @@ const User = sequelize.define('User', {
   },
   userid: {
     type: DataTypes.STRING(300),
-    allowNull: false,
+    allowNull: true,
     unique: true,
   },
   userpw: {
     type: DataTypes.STRING(300),
-    allowNull: false,
+    allowNull: true,
   },
   username: {
     type: DataTypes.STRING(300),
@@ -23,19 +23,28 @@ const User = sequelize.define('User', {
   },
   usergender: {
     type: DataTypes.TINYINT(1),
-    allowNull: false,
+    allowNull: true,
+    defaultValue: 0,
   },
   userphone: {
     type: DataTypes.STRING(300),
-    allowNull: false,
+    allowNull: true,
   },
   useraddress: {
     type: DataTypes.STRING(300),
-    allowNull: false,
+    allowNull: true,
   },
   userregdate: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW,
+  },
+  kakao_id: {
+    type: DataTypes.STRING,
+    unique: true,
+  },
+  social_type: {
+    type: DataTypes.ENUM('local', 'kakao'),
+    defaultValue: 'local',
   },
 }, {
   tableName: 'shop_user',

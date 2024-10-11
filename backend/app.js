@@ -8,22 +8,26 @@ const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const { Sequelize } = require('sequelize');
 const xss = require('xss-clean');
+const cors = require('cors');
+const app = express();
+const PORT = 5000;
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
 
-const app = express();
-const PORT = 5000;
+app.use(cors({
+  origin: 'http://localhost:3000', 
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+}));
+
+// body-parser 설정 (Express 4.16.0 이상에서는 내장됨)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
 app.use(xss());
-
-// react 포트 맞추기
-const cors = require('cors');
-app.use(cors({
-    origin: 'http://localhost:3000', // React 앱의 주소
-    credentials: true,
-  }));
-
-app.use(express.json({ limit: '20kb' }));
+app.use('/api/auth', authRoutes);
 
 app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
@@ -144,9 +148,9 @@ const authenticateToken = (req, res, next) => {
 
   if (token == null) return res.sendStatus(401);
 
-  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
     if (err) return res.sendStatus(403);
-    req.user = user;
+    req.user = decodedToken;
     next();
   });
 };
@@ -154,7 +158,7 @@ const authenticateToken = (req, res, next) => {
 app.get('/api/user', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate']
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate', 'social_type']
     });
 
     if (!user) {
@@ -165,10 +169,11 @@ app.get('/api/user', authenticateToken, async (req, res) => {
       id: user.useridx,
       email: user.userid,
       name: user.username,
-      gender: user.usergender === 1 ? '여성' : '남성',
+      gender: user.usergender === 1 ? '여성' : user.usergender === 0 ? '남성' : null,
       phone: user.userphone,
       address: user.useraddress,
-      registrationDate: user.userregdate
+      registrationDate: user.userregdate,
+      loginType: user.social_type
     });
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
