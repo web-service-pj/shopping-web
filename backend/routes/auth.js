@@ -28,11 +28,11 @@ router.post('/kakao', async (req, res) => {
     const kakaoUser = userResponse.data;
 
     // 사용자 찾기 또는 생성
-    let user = await User.findOne({ where: { kakao_id: kakaoUser.id } });
+    let user = await User.findOne({ where: { kakao_id: kakaoUser.id.toString() } });
     if (!user) {
       user = await User.create({
-        kakao_id: kakaoUser.id,
-        userid: `kakao_${kakaoUser.id}`,
+        kakao_id: kakaoUser.id.toString(),
+        userid: kakaoUser.kakao_account.email,
         username: kakaoUser.properties.nickname,
         social_type: 'kakao',
       });
@@ -47,7 +47,6 @@ router.post('/kakao', async (req, res) => {
 
     res.json({ token, user: { id: user.useridx, name: user.username, email: user.userid } });
   } catch (error) {
-    console.error('Kakao login error:', error);
     res.status(500).json({ message: '카카오 로그인 실패', error: error.message });
   }
 });

@@ -17,7 +17,6 @@ const KakaoCallback = () => {
         alert('카카오 로그인이 완료되었습니다!');
         navigate('/');
       } catch (error) {
-        console.error('Kakao login failed:', error);
         alert('카카오 로그인에 실패했습니다.');
         navigate('/login');
       }

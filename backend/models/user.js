@@ -40,7 +40,7 @@ const User = sequelize.define('User', {
   },
   kakao_id: {
     type: DataTypes.STRING,
-    unique: true,
+    allowNull: true,
   },
   social_type: {
     type: DataTypes.ENUM('local', 'kakao'),

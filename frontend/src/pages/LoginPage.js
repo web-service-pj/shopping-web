@@ -4,7 +4,6 @@ import Footer from '../components/common/footer';
 import KakaoLogin from '../components/KakaoLogin';
 import { useNavigate } from 'react-router-dom';
 import { checkTokenExpiration } from '../utils/auth';
-import styled from 'styled-components';
 
 const LoginForm = () => {
   const navigate = useNavigate();
