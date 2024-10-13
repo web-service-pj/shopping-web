@@ -7,6 +7,10 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const { Sequelize } = require('sequelize');
+const xss = require('xss-clean');
+const cors = require('cors');
+
+const authRoutes = require('./routes/auth');
 
 dotenv.config();
 
@@ -16,11 +20,18 @@ const PORT = 80;
 // react 포트 맞추기
 const cors = require('cors');
 app.use(cors({
-    origin: ['http://113.198.66.75:10052'], // React 앱의 주소
-    credentials: true,
-  }));
+  origin: ['http://113.198.66.75:10052'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true 
+}));
 
+// body-parser 설정 (Express 4.16.0 이상에서는 내장됨)
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+app.use(xss());
+app.use('/api/auth', authRoutes);
 
 app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
@@ -66,14 +77,28 @@ app.post('/api/register', async (req, res) => {
     try {
       const { name, email, phone, password, gender, address } = req.body;
   
+      if (!name || !email || !phone || !password || !gender || !address) {
+        return res.status(400).json({ message: '모든 필드를 입력해주세요.' });
+      }
+
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        return res.status(400).json({ message: '유효한 이메일 주소를 입력해주세요.' });
+      }
+
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        return res.status(400).json({ message: '비밀번호는 최소 8자 이상이며, 대문자, 소문자, 숫자, 특수문자를 포함해야 합니다.' });
+      }
+
       // 이메일 중복 체크
       const existingUser = await User.findOne({ where: { userid: email } });
       if (existingUser) {
-          return res.status(400).json({ message: '이미 존재하는 이메일입니다.' });
+          return res.status(400).json({ message: '사용할 수 없는 이메일입니다.' });
       }
 
       // 비밀번호 해싱
-      const hashedPassword = await bcrypt.hash(password, 10);
+      const hashedPassword = await bcrypt.hash(password, 12);
   
       // 새 사용자 생성
       const newUser = await User.create({
@@ -85,7 +110,7 @@ app.post('/api/register', async (req, res) => {
         useraddress: address
       });
   
-      res.status(201).json({ message: '회원가입 성공', user: newUser });
+      res.status(201).json({ message: '회원가입 성공', user: { id: newUser.useridx, name: newUser.username } });
     } catch (error) {
       console.error('회원가입 실패:', error);
       res.status(500).json({ message: '서버 오류' });
@@ -95,15 +120,20 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
+
+      if (!email || !password) {
+        return res.status(400).json({ message: '이메일과 비밀번호를 입력해주세요.' });
+      }
+
       const user = await User.findOne({ where: { userid: email } });
   
       if (!user) {
-        return res.status(400).json({ message: '사용자를 찾을 수 없습니다.' });
+        return res.status(400).json({ message: '로그인에 실패하였습니다.' });
       }
   
       const isMatch = await bcrypt.compare(password, user.userpw);
       if (!isMatch) {
-        return res.status(400).json({ message: '비밀번호가 일치하지 않습니다.' });
+        return res.status(400).json({ message: '로그인에 실패하였습니다.' });
       }
   
       const token = jwt.sign({ id: user.useridx }, process.env.JWT_SECRET, { expiresIn: '1h' });
@@ -113,6 +143,46 @@ app.post('/api/login', async (req, res) => {
       console.error('로그인 실패:', error);
       res.status(500).json({ message: '서버 오류' });
     }
+});
+
+// 토큰 검증
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (token == null) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+    if (err) return res.sendStatus(403);
+    req.user = decodedToken;
+    next();
+  });
+};
+
+app.get('/api/user', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate', 'social_type']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    res.json({
+      id: user.useridx,
+      email: user.userid,
+      name: user.username,
+      gender: user.usergender === 1 ? '여성' : user.usergender === 0 ? '남성' : null,
+      phone: user.userphone,
+      address: user.useraddress,
+      registrationDate: user.userregdate,
+      loginType: user.social_type
+    });
+  } catch (error) {
+    console.error('사용자 정보 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
 });
 
 app.get('/api/men-products', async (req, res) => {

@@ -120,11 +120,10 @@ const SignUpPage = () => {
           if (response.ok) {
             console.log('회원가입 성공:', data);
             alert('회원가입에 성공했습니다!');
-            navigate('/');
+            navigate('/login');
           } else {
             console.error('회원가입 실패:', data.message);
             alert(`회원가입에 실패했습니다: ${data.message}`);
-            navigate('/login');  // 로그인 페이지로 이동
           }
         } catch (error) {
           console.error('회원가입 요청 중 오류 발생:', error);
@@ -229,6 +228,7 @@ const SignUpPage = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
             placeholder="ex) 홍길동"
             required
+            maxLength="20"
           />
         </div>
         <div>
@@ -241,6 +241,7 @@ const SignUpPage = () => {
             className="w-full px-3 py-2 border border-gray-300 rounded"
             placeholder="email@example.com"
             required
+            maxLength="50"
           />
         </div>
         <div>
@@ -259,8 +260,9 @@ const SignUpPage = () => {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded"
             required
+            maxLength="100"
           />
-          <p className="text-xs text-gray-500 mt-1">대문자, 소문자, 특수문자 포함 8자리 이상</p>
+          <p className="text-xs text-gray-500 mt-1">대문자, 소문자, 숫자, 특수문자 포함 8자리 이상</p>
         </div>
         <div>
           <label className="block text-sm mb-1">비밀번호 확인</label>
@@ -271,6 +273,7 @@ const SignUpPage = () => {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded"
             required
+            maxLength="100"
           />
         </div>
         <div>
@@ -296,6 +299,7 @@ const SignUpPage = () => {
             onChange={handleInputChange}
             className="w-full px-3 py-2 border border-gray-300 rounded"
             required
+            maxLength="200"
           />
         </div>
         <button

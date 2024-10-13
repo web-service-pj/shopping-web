@@ -1,5 +1,6 @@
-import React from 'react';
+import React, { useEffect }  from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
+import { checkTokenExpiration } from './utils/auth';
 import MainPage from './pages/MainPage';
 import Notifications from './pages/NotificationsPage'; 
 import Stores from './pages/StoresPage'
@@ -10,10 +11,17 @@ import Women from './pages/WomenPage'
 import Brand from './pages/BrandPage'
 import BrandProductPage from './pages/BrandProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
-
+import MyPage from './pages/MyPage';
+import KakaoCallback from './pages/KakaoCallback';
 
 
 function App() {
+  useEffect(() => {
+    checkTokenExpiration();
+    const interval = setInterval(checkTokenExpiration, 60000); // 1분마다 체크
+    return () => clearInterval(interval);
+  }, []);
+  
   return (
     <Router>
       <Routes>
@@ -29,6 +37,8 @@ function App() {
         <Route path="/brands" element={<Brand />} />
         <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
         <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />
+        <Route path="/mypage" element={<MyPage />} />
+        <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
       </Routes>
     </Router>
   );
