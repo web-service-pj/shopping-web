@@ -120,7 +120,7 @@ const SignUpPage = () => {
           if (response.ok) {
             console.log('회원가입 성공:', data);
             alert('회원가입에 성공했습니다!');
-            navigate('/');
+            navigate('/login');
           } else {
             console.error('회원가입 실패:', data.message);
             alert(`회원가입에 실패했습니다: ${data.message}`);

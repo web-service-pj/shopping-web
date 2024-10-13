@@ -20,9 +20,28 @@ const Header = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    
+    if (window.Kakao && window.Kakao.Auth) {
+      if (window.Kakao.Auth.getAccessToken()) {
+        window.Kakao.Auth.logout(() => {
+          console.log('카카오 로그아웃 완료');
+          window.Kakao.Auth.setAccessToken(null);
+        });
+      }
+    } else {
+      console.log('Kakao SDK not loaded');
+    }
+  
+    // 카카오 로그인 상태 초기화를 위한 iframe 추가
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = 'https://accounts.kakao.com/logout';
+    document.body.appendChild(iframe);
+    setTimeout(() => document.body.removeChild(iframe), 1000);
+  
     setIsLoggedIn(false);
     setUserName('');
-    alert('로그아웃되었습니다.');
+    alert('로그아웃이 완료되었습니다.');
     navigate('/');
   };
 
