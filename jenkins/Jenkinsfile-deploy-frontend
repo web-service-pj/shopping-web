@@ -4,7 +4,7 @@ pipeline {
     environment {
         SERVER_IP = credentials('jcloud-ip')  // Jenkins에 등록한 IP Credential ID
         SSH_PORT = credentials('backend-server-port')    // Jenkins에 등록한 Port Credential ID
-        DOCKER_IMAGE = "0b6fa52889bf.ngrok.app/cluster/frontend"
+        DOCKER_IMAGE = "77e920d8bce9.ngrok.app/cluster/frontend"
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
         SCANNER_HOME = tool 'SonarQube Scanner'
     }
