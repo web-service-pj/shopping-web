@@ -41,7 +41,7 @@ pipeline {
             steps {
                 script {
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "-f frontend/Dockerfile ./frontend")
-                    docker.withRegistry('https://0b6fa52889bf.ngrok.app', 'harbor-hyeongjun') {
+                    docker.withRegistry('https://77e920d8bce9.ngrok.app', 'harbor-hyeongjun') {
                         docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
                     }
                 }
