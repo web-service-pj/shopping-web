@@ -9,7 +9,7 @@ const KakaoLogin = () => {
 
     script.onload = () => {
       if (window.Kakao) {
-        window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+        window.Kakao.init(REACT_APP_KAKAO_CLIENT_ID);
       }
     };
 
@@ -21,7 +21,7 @@ const KakaoLogin = () => {
   const handleKakaoLogin = () => {
     if (window.Kakao && window.Kakao.Auth) {
       window.Kakao.Auth.cleanup(); // 기존 인증 정보 정리
-      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REACT_APP_KAKAO_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
+      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${REACT_APP_KAKAO_CLIENT_ID}&redirect_uri=${REACT_APP_KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
       window.location.href = KAKAO_AUTH_URL;
     } else {
       console.log('Kakao SDK not loaded');
