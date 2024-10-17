@@ -3,6 +3,7 @@ const dotenv = require('dotenv');
 const sequelize = require('./config/database');
 const User = require('./models/user');
 const Wear = require('./models/wear');
+const ShoppingCart = require('./models/shopping_cart');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
@@ -270,6 +271,200 @@ app.get('/api/brand-products/:brandName', async (req, res) => {
   }
 });
 
+// 장바구니에 상품 추가 API
+app.post('/api/shopping-cart', authenticateToken, async (req, res) => {
+  try {
+    const { wearidx, quantity, w_code, w_gender } = req.body;
+    const userid = req.user.id;
+
+    console.log('Received request:', { userid, wearidx, quantity, w_code, w_gender });
+
+    if (!wearidx || !quantity || !w_code) {
+      return res.status(400).json({ message: '필수 정보가 누락되었습니다.' });
+    }
+
+    // 사용자 존재 여부 확인 (선택적)
+    const user = await User.findByPk(userid);
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 상품 존재 여부 확인 (선택적)
+    const wear = await Wear.findByPk(wearidx);
+    if (!wear) {
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    const cartItem = await ShoppingCart.create({
+      userid: user.userid, // user.userid는 이메일 주소입니다.
+      wearidx,
+      w_code,
+      w_gender,
+      quantity
+    });
+
+    console.log('Cart item created:', cartItem);
+
+    res.status(201).json({ message: '상품이 장바구니에 추가되었습니다.', cartItem });
+  } catch (error) {
+    console.error('장바구니 추가 실패:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+// 장바구니 조회 API
+app.get('/api/shopping-cart', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // 사용자 ID로 이메일 주소 조회
+    const user = await User.findByPk(userId, {
+      attributes: ['userid']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    const userEmail = user.userid;
+    console.log('User Email:', userEmail);
+
+    const cartItems = await ShoppingCart.findAll({
+      where: { userid: userEmail },
+      attributes: ['cart_idx', 'userid', 'wearidx', 'w_code', 'w_gender', 'quantity', 'added_date']
+    });
+
+    console.log('Cart items found:', cartItems);
+
+    if (cartItems.length === 0) {
+      console.log('No cart items found for user:', userEmail);
+      return res.json([]);
+    }
+
+    const wearIds = cartItems.map(item => item.wearidx);
+    console.log('Wear IDs:', wearIds);
+
+    const wearItems = await Wear.findAll({
+      where: { wearidx: wearIds },
+      attributes: ['wearidx', 'w_name', 'w_price', 'w_path', 'w_brand']
+    });
+
+    console.log('Wear items found:', wearItems);
+
+    const combinedCartItems = cartItems.map(cartItem => {
+      const wearItem = wearItems.find(wear => wear.wearidx === cartItem.wearidx);
+      return {
+        ...cartItem.toJSON(),
+        wear: wearItem ? wearItem.toJSON() : null
+      };
+    });
+
+    console.log('Combined cart items:', combinedCartItems);
+
+    res.json(combinedCartItems);
+  } catch (error) {
+    console.error('장바구니 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류', error: error.message });
+  }
+});
+
+// 장바구니 아이템 수량 업데이트 API
+app.put('/api/shopping-cart/:cartItemId', authenticateToken, async (req, res) => {
+  try {
+    const { cartItemId } = req.params;
+    const { quantity } = req.body;
+    const userid = req.user.id;
+
+    const cartItem = await ShoppingCart.findOne({
+      where: { cart_idx: cartItemId, userid }
+    });
+
+    if (!cartItem) {
+      return res.status(404).json({ message: '장바구니 아이템을 찾을 수 없습니다.' });
+    }
+
+    cartItem.quantity = quantity;
+    await cartItem.save();
+
+    res.json({ message: '장바구니 아이템이 업데이트되었습니다.', cartItem });
+  } catch (error) {
+    console.error('장바구니 아이템 업데이트 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+// 장바구니 아이템 삭제 API
+app.delete('/api/shopping-cart/:cartItemId', authenticateToken, async (req, res) => {
+  try {
+    const { cartItemId } = req.params;
+    const userid = req.user.id;
+
+    const result = await ShoppingCart.destroy({
+      where: { cart_idx: cartItemId, userid }
+    });
+
+    if (result === 0) {
+      return res.status(404).json({ message: '장바구니 아이템을 찾을 수 없습니다.' });
+    }
+
+    res.json({ message: '장바구니 아이템이 삭제되었습니다.' });
+  } catch (error) {
+    console.error('장바구니 아이템 삭제 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+// 개별 상품 정보 조회 API
+app.get('/api/products/:productCode', async (req, res) => {
+  try {
+    const { productCode } = req.params;
+    const product = await Wear.findOne({
+      where: { w_code: productCode },
+      attributes: [
+        'wearidx', 'w_code', 'w_name', 'w_price', 'w_path', 
+        'w_brand', 'w_gender', 'w_category', 'w_size', 'w_stock'
+      ]
+    });
+
+    if (!product) {
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    res.json(product);
+  } catch (error) {
+    console.error('상품 정보 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+app.get('/api/current-user', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id, {
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    res.json({
+      userId: user.useridx,
+      email: user.userid,
+      name: user.username,
+      gender: user.usergender === 1 ? '여성' : '남성',
+      phone: user.userphone,
+      address: user.useraddress
+    });
+  } catch (error) {
+    console.error('현재 사용자 정보 조회 실패:', error);
+    res.status(500).json({ message: '서버 오류' });
+  }
+});
+
+
 app.listen(PORT, () => {
   console.log(`서버가 포트 ${PORT}에서 실행 중입니다.`);
 }); 
+
+
+

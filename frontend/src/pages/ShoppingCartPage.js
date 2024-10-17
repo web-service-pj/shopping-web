@@ -2,6 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
+import axios from 'axios';
+
+// axios 인스턴스 생성
+const api = axios.create({
+  baseURL: 'http://localhost:3005', // 백엔드 서버 주소
+});
+
+// 요청 인터셉터 추가
+api.interceptors.request.use((config) => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
+      console.log('Request headers:', config.headers);
+    } else {
+      console.log('No token found in localStorage');
+    }
+    return config;
+  }, (error) => {
+    return Promise.reject(error);
+  });
 
 const ShoppingCartPage = () => {
   const navigate = useNavigate();
@@ -11,41 +31,79 @@ const ShoppingCartPage = () => {
   const [pointsToUse, setPointsToUse] = useState(0);
 
   useEffect(() => {
-    // 예시 상품 데이터
-    const sampleItem = {
-      id: 'ITEM001',
-      name: '클래식 데님 재킷',
-      size: 'M',
-      price: 89000,
-      quantity: 1,
-      image: '/api/placeholder/240/240',
-      brand: 'TrendCore',
-    };
-    setCartItems([sampleItem]);
-    calculateTotal([sampleItem]);
+    fetchCartItems();
   }, []);
+
+  const fetchCartItems = async () => {
+    try {
+      console.log('Fetching cart items...');
+      const response = await api.get('/api/shopping-cart');
+      console.log('API Response:', response.data);
+  
+      if (response.data.length === 0) {
+        console.log('Cart is empty');
+        setCartItems([]);
+        setTotalPrice(0);
+        return;
+      }
+  
+      const items = response.data.map(item => ({
+        id: item.cart_idx,
+        name: item.wear ? item.wear.w_name : 'Unknown Product',
+        size: 'N/A',
+        price: item.wear ? item.wear.w_price : 0,
+        quantity: item.quantity,
+        image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : '/api/placeholder/240/240',
+        brand: item.wear ? item.wear.w_brand : 'Unknown Brand',
+        w_code: item.w_code,
+        w_gender: item.w_gender,
+      }));
+  
+      console.log('Processed items:', items);
+      setCartItems(items);
+      calculateTotal(items);
+    } catch (error) {
+      console.error('Failed to fetch cart items:', error);
+      if (error.response && error.response.status === 401) {
+        alert('로그인이 필요합니다.');
+        navigate('/login');
+      } else {
+        alert('장바구니 정보를 불러오는데 실패했습니다.');
+      }
+    }
+  };
 
   const calculateTotal = (items) => {
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
     setTotalPrice(total);
   };
 
-  const updateQuantity = (id, change) => {
-    const updatedItems = cartItems.map(item => {
-      if (item.id === id) {
-        const newQuantity = Math.max(1, item.quantity + change);
-        return { ...item, quantity: newQuantity };
-      }
-      return item;
-    });
-    setCartItems(updatedItems);
-    calculateTotal(updatedItems);
+  const updateQuantity = async (id, change) => {
+    try {
+      const item = cartItems.find(item => item.id === id);
+      const newQuantity = Math.max(1, item.quantity + change);
+      await api.put(`/api/shopping-cart/${id}`, { quantity: newQuantity });
+      const updatedItems = cartItems.map(item => 
+        item.id === id ? { ...item, quantity: newQuantity } : item
+      );
+      setCartItems(updatedItems);
+      calculateTotal(updatedItems);
+    } catch (error) {
+      console.error('Failed to update quantity:', error);
+      alert('수량 변경에 실패했습니다.');
+    }
   };
 
-  const removeItem = (id) => {
-    const updatedItems = cartItems.filter(item => item.id !== id);
-    setCartItems(updatedItems);
-    calculateTotal(updatedItems);
+  const removeItem = async (id) => {
+    try {
+      await api.delete(`/api/shopping-cart/${id}`);
+      const updatedItems = cartItems.filter(item => item.id !== id);
+      setCartItems(updatedItems);
+      calculateTotal(updatedItems);
+    } catch (error) {
+      console.error('Failed to remove item:', error);
+      alert('상품 삭제에 실패했습니다.');
+    }
   };
 
   const handleCouponChange = (e) => {
@@ -58,71 +116,115 @@ const ShoppingCartPage = () => {
 
   const applyPoints = () => {
     console.log(`Applying ${pointsToUse} points`);
+    // 포인트 적용 로직 구현
   };
 
   const handleCheckout = () => {
     console.log('Proceeding to checkout');
+    // 결제 페이지로 이동 로직 구현
     // navigate('/checkout');
   };
 
+  const handleProductClick = async (item) => {
+    try {
+      const response = await api.get(`/api/products/${item.w_code}`);
+      if (response.data) {
+        const product = {
+          ...response.data,
+          image: response.data.w_path.split(',')[0].trim(),
+          brand: response.data.w_brand,
+          name: response.data.w_name,
+          price: `${response.data.w_price.toLocaleString()}원`,
+          category: response.data.w_category,
+        };
+        const gender = product.w_gender === 0 ? 'men' : 'women';
+        navigate(`/${gender}/${product.w_code}`, { state: { product } });
+      }
+    } catch (error) {
+      console.error('Failed to fetch product details:', error);
+      alert('상품 정보를 불러오는데 실패했습니다.');
+    }
+  };
+
+
   return (
-    <div className="ShoppingCartPage bg-opacity-95 min-h-screen">
+    <div className="ShoppingCartPage  min-h-screen">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">장바구니</h1>
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-3/4">
-            <div className="bg-white rounded-lg shadow-md border border-[#F3F4F6]">
+            <div className="bg-white rounded-lg shadow-md">
               <div className="p-6">
                 {cartItems.length === 0 ? (
                   <p className="text-center text-gray-500">장바구니가 비어 있습니다.</p>
                 ) : (
                   <table className="w-full">
                     <thead>
-                      <tr className="border-b border-[#F3F4F6]">
-                        <th className="text-left py-2 px-4 w-1/2">상품 정보</th>
-                        <th className="text-center py-2 px-4 w-1/6">수량</th>
-                        <th className="text-center py-2 px-4 w-1/6">가격</th>
-                        <th className="text-center py-2 px-4 w-1/6">비고</th>
+                      <tr className="border-b">
+                        <th className="text-left py-2 px-4">상품 정보</th>
+                        <th className="text-center py-2 px-4">수량</th>
+                        <th className="text-center py-2 px-4">가격</th>
+                        <th className="text-center py-2 px-4">비고</th>
                       </tr>
                     </thead>
                     <tbody>
                       {cartItems.map(item => (
-                        <tr key={item.id} className="border-b border-[#F3F4F6]">
+                        <tr key={item.id} className="border-b">
                           <td className="py-4 px-4">
                             <div className="flex items-center">
-                              <input type="checkbox" className="mr-4" />
-                              <img src={item.image} alt={item.name} className="w-24 h-24 object-cover mr-6" />
+                              <div 
+                                className="w-24 h-50 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4 cursor-pointer"
+                                onClick={() => handleProductClick(item)}
+                              >
+                                <img 
+                                  src={item.image} 
+                                  alt={item.name} 
+                                  className="h-full w-full object-cover object-center"
+                                />
+                              </div>
                               <div>
-                                <h3 className="font-semibold text-lg">{item.name}</h3>
+                                <h3 
+                                  className="font-semibold text-lg cursor-pointer hover:underline"
+                                  onClick={() => handleProductClick(item)}
+                                >
+                                  {item.name}
+                                </h3>
                                 <p className="text-gray-500 mt-1">브랜드: {item.brand}</p>
                                 <p className="text-gray-500">사이즈: {item.size}</p>
-                                <p className="text-gray-500">상품번호: {item.id}</p>
+                                <p className="text-gray-500">상품 코드: {item.w_code}</p> 
                               </div>
                             </div>
                           </td>
                           <td className="text-center py-4 px-4">
                             <div className="flex items-center justify-center">
-                              <div className="flex border border-gray-300 rounded-md">
-                                <button
-                                  onClick={() => updateQuantity(item.id, -1)}
-                                  className="px-3 py-1 border-r border-gray-300 hover:bg-gray-100 transition duration-300"
-                                >
-                                  −
-                                </button>
-                                <span className="px-3 py-1 font-semibold">{item.quantity}</span>
-                                <button
-                                  onClick={() => updateQuantity(item.id, 1)}
-                                  className="px-3 py-1 border-l border-gray-300 hover:bg-gray-100 transition duration-300"
-                                >
-                                  +
-                                </button>
-                              </div>
+                              <button
+                                onClick={() => updateQuantity(item.id, -1)}
+                                className="px-2 py-1 border rounded-l"
+                              >
+                                -
+                              </button>
+                              <span className="px-4 py-1 border-t border-b">
+                                {item.quantity}
+                              </span>
+                              <button
+                                onClick={() => updateQuantity(item.id, 1)}
+                                className="px-2 py-1 border rounded-r"
+                              >
+                                +
+                              </button>
                             </div>
                           </td>
-                          <td className="text-center font-semibold py-4 px-4">{item.price.toLocaleString()}원</td>
+                          <td className="text-center font-semibold py-4 px-4">
+                            {item.price.toLocaleString()}원
+                          </td>
                           <td className="text-center py-4 px-4">
-                            <button onClick={() => removeItem(item.id)} className="text-red-500 hover:text-red-700 transition duration-300">삭제</button>
+                            <button 
+                              onClick={() => removeItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
+                            >
+                              삭제
+                            </button>
                           </td>
                         </tr>
                       ))}
@@ -133,7 +235,7 @@ const ShoppingCartPage = () => {
             </div>
           </div>
           <div className="lg:w-1/4">
-            <div className="bg-white rounded-lg shadow-md border border-[#F3F4F6]">
+            <div className="bg-white rounded-lg shadow-md">
               <div className="p-6">
                 <h2 className="text-xl font-bold mb-4">주문 요약</h2>
                 <div className="mb-4">
@@ -166,7 +268,7 @@ const ShoppingCartPage = () => {
                     </button>
                   </div>
                 </div>
-                <div className="border-t border-[#F3F4F6] pt-4">
+                <div className="border-t pt-4">
                   <div className="flex justify-between mb-2">
                     <span>상품 금액</span>
                     <span>{totalPrice.toLocaleString()} 원</span>

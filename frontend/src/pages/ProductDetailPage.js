@@ -1,17 +1,52 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import axios from 'axios';
+
+// axios 인스턴스 생성
+const api = axios.create({
+  baseURL: 'http://localhost:3005', // 백엔드 서버 주소
+});
+
+// 요청 인터셉터 추가
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
 
 const ProductDetailPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const product = location.state?.product;
   const [selectedSize, setSelectedSize] = useState('');
   const [sizeStock, setSizeStock] = useState({});
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
+    window.scrollTo(0, 0);
+    const fetchUserId = async () => {
+      try {
+        const response = await api.get('/api/current-user');
+        setUserId(response.data.userId);
+      } catch (error) {
+        console.error('Failed to fetch user ID:', error);
+        if (error.response && error.response.status === 401) {
+          localStorage.removeItem('token');
+          navigate('/login');
+        }
+      }
+    };
+
+    fetchUserId();
+
     if (product && product.w_size && product.w_stock) {
       const splitString = (str) => str.split(/[;,]/).map(item => item.trim());
       
@@ -25,7 +60,48 @@ const ProductDetailPage = () => {
       });
       setSizeStock(sizeStockObj);
     }
-  }, [product]);
+  }, [product, navigate]);
+
+  const addToCart = async () => {
+    if (!selectedSize) {
+      alert('사이즈를 선택해주세요.');
+      return;
+    }
+  
+    if (!userId) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+  
+    try {
+      const response = await api.post('/api/shopping-cart', {
+        wearidx: product.wearidx,
+        quantity: 1,
+        w_code: product.w_code,
+        w_gender: product.w_gender,
+      });
+  
+      alert(response.data.message || '장바구니에 추가되었습니다.');
+    } catch (error) {
+      console.error('Failed to add to cart:', error);
+      if (error.response) {
+        console.error('Error response:', error.response.data);
+        if (error.response.status === 401) {
+          alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+          navigate('/login');
+        } else {
+          alert(error.response.data.message || '장바구니 추가 중 오류가 발생했습니다.');
+        }
+      } else if (error.request) {
+        console.error('Error request:', error.request);
+        alert('서버에 연결할 수 없습니다.');
+      } else {
+        console.error('Error', error.message);
+        alert('알 수 없는 오류가 발생했습니다.');
+      }
+    }
+  };
 
   if (!product) {
     return <div>Product not found</div>;
@@ -39,7 +115,6 @@ const ProductDetailPage = () => {
       <Header />
       <div className="container mx-auto px-4 py-8">
         <div className="flex flex-wrap -mx-4">
-          {/* 이미지 슬라이더 */}
           <div className="w-full md:w-1/2 px-4 mb-8">
             <Carousel
               showArrows={true}
@@ -52,20 +127,19 @@ const ProductDetailPage = () => {
             >
               {images.map((img, index) => (
                 <div key={index} className="carousel-image-container">
-                  <img src={img} alt={`${product.name} - ${index + 1}`} />
+                  <img src={img} alt={`${product.w_name} - ${index + 1}`} />
                 </div>
               ))}
             </Carousel>
           </div>
 
-          {/* 상품 정보 */}
           <div className="w-full md:w-1/2 px-4">
             <div className="flex justify-between items-center mb-4">
-              <span className="text-xl font-bold">{product.brand}</span>
+              <span className="text-xl font-bold">{product.w_brand}</span>
               <button className="text-2xl">☆</button>
             </div>
             <p className="text-sm text-gray-600 mb-2">신상품</p>
-            <h1 className="text-2xl font-bold mb-2">{product.name}</h1>
+            <h1 className="text-2xl font-bold mb-2">{product.w_name}</h1>
             <p className="mb-4">{product.w_code}</p>
             <p className="text-2xl font-bold mb-4">정상가 {`${product.w_price.toLocaleString()}원`}</p>
             
@@ -100,6 +174,7 @@ const ProductDetailPage = () => {
                 </button>
                 <button 
                   className="w-1/2 py-3 px-4 rounded text-black border border-black bg-white"
+                  onClick={addToCart}
                 >
                   장바구니 담기
                 </button>
@@ -115,7 +190,7 @@ const ProductDetailPage = () => {
             <div className="border-t pt-4">
               <details className="mb-6">
                 <summary className="font-bold cursor-pointer p-2">상세정보</summary> 
-                <p className="mt-2 p-4">ASICS는 1949년 일본에서 설립된 글로벌 스포츠 브랜드로, 고품질 운동화와 스포츠 의류를 제공합니다. "건강한 정신은 건강한 신체에서 나온다"라는 철학을 바탕으로 혁신적인 기술과 디자인을 결합하여 운동 성능을 향상시키고자 합니다. 다양한 스포츠 활동을 지원하며, 운동선수와 일반 소비자 모두에게 신뢰받는 브랜드로 자리매김하고 있습니다.</p>
+                <p className="mt-2 p-4">{product.w_brand}는 고품질 운동화와 스포츠 의류를 제공합니다. "건강한 정신은 건강한 신체에서 나온다"라는 철학을 바탕으로 혁신적인 기술과 디자인을 결합하여 운동 성능을 향상시키고자 합니다. 다양한 스포츠 활동을 지원하며, 운동선수와 일반 소비자 모두에게 신뢰받는 브랜드로 자리매김하고 있습니다.</p>
               </details>
               <details className="mb-6">
                 <summary className="font-bold cursor-pointer p-2">배송 안내</summary>
