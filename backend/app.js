@@ -8,7 +8,6 @@ const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
 const { Sequelize } = require('sequelize');
 const xss = require('xss-clean');
-
 const authRoutes = require('./routes/auth');
 
 dotenv.config();
