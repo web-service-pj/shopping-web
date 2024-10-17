@@ -49,7 +49,7 @@ const Header = () => {
 
   return (
     <header>
-      <nav className="Background" style={{width: '100%', height: 98, background: 'rgba(255, 255, 255, 0.95)'}}>
+      <nav className="Background" style={{width: '100%', height: 99, background: 'rgba(255, 255, 255, 0.95)'}}>
         <div className="Horizontalborder" style={{height: 61, borderBottom: '1px #F3F4F6 solid', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 32px'}}>
           <div style={{display: 'flex', gap: '24px'}}>
             <Link to="/notifications" style={{color: '#1F2937', fontSize: 12}}>알림센터</Link>
@@ -81,7 +81,14 @@ const Header = () => {
             )}
           </div>
         </div>
-        <div style={{display: 'flex', justifyContent: 'center', gap: '48px', height: 36, alignItems: 'center'}}>
+        <div style={{
+          display: 'flex', 
+          justifyContent: 'center', 
+          gap: '48px', 
+          height: 37, 
+          alignItems: 'center', 
+          borderBottom: '1px #F3F4F6 solid'
+        }}>
           <Link 
             to="/men" 
             style={{

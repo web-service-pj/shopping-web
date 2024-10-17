@@ -12,6 +12,7 @@ import Brand from './pages/BrandPage'
 import BrandProductPage from './pages/BrandProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
 import MyPage from './pages/MyPage';
+import Cart from './pages/ShoppingCartPage';
 import KakaoCallback from './pages/KakaoCallback';
 
 function App() {
@@ -37,6 +38,7 @@ function App() {
         <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
         <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />
         <Route path="/mypage" element={<MyPage />} />
+        <Route path="/cart" element={<Cart />} />
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
       </Routes>
     </Router>

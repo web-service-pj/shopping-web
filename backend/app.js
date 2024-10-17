@@ -10,14 +10,14 @@ const { Sequelize } = require('sequelize');
 const xss = require('xss-clean');
 const cors = require('cors');
 const app = express();
-const PORT = 3000;
+const PORT = 3005;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 
 dotenv.config();
 
 app.use(cors({
-  origin: 'http://113.198.66.75:18076', 
+  origin: 'http://localhost:3001', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true 

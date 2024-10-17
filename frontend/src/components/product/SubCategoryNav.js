@@ -15,13 +15,15 @@ const SubCategoryNav = ({ categories, onCategoryChange, currentCategory, useDyna
   const displayCategories = useDynamicCategories ? categories : defaultCategories;
 
   return (
-    <nav className="w-full bg-white bg-opacity-95 border-t border-b border-gray-100">
+    <nav className="w-full bg-white bg-opacity-95 border-b border-[#F3F4F6]">
       <div className="flex justify-center gap-12 h-9 items-center px-8">
         {displayCategories.map((category) => (
           <button
             key={category.path}
             onClick={() => onCategoryChange(category.path)}
-            className={`text-gray-800 text-xs hover:text-gray-600 ${currentCategory === category.path ? 'font-bold' : ''}`}
+            className={`text-[#1F2937] text-xs hover:text-[#4B5563] ${
+              currentCategory === category.path ? 'font-bold' : ''
+            }`}
           >
             {category.name}
           </button>

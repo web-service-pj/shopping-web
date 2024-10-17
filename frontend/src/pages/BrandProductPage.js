@@ -44,7 +44,7 @@ const BrandProductPage = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch(`http://113.198.66.75:13070/api/brand-products/${encodeURIComponent(brandName)}`);
+        const response = await fetch(`http://localhost:3005/api/brand-products/${encodeURIComponent(brandName)}`);
         if (!response.ok) {
           throw new Error('Network response was not ok');
         }
@@ -70,7 +70,7 @@ const BrandProductPage = () => {
     return () => clearInterval(interval);
   }, [brandName, setSortProducts]);
 
-    const handleCategoryChange = (category) => {
+  const handleCategoryChange = (category) => {
     setCurrentCategory(category);
   };
 
@@ -81,7 +81,7 @@ const BrandProductPage = () => {
   return (
     <div className="BrandProductPage">
       <Header />
-      <div className="border-t border-gray-100" style={{height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+      <div className="text-center py-4">
         <h1 className="text-lg font-bold">{decodeURIComponent(brandName)}</h1>
       </div>
       <SubCategoryNav 
