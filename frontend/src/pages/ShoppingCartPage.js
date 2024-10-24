@@ -81,16 +81,85 @@ const ShoppingCartPage = () => {
   const updateQuantity = async (id, change) => {
     try {
       const item = cartItems.find(item => item.id === id);
+      if (!item) {
+        console.error('Item not found:', id);
+        return;
+      }
+  
       const newQuantity = Math.max(1, item.quantity + change);
-      await api.put(`/api/shopping-cart/${id}`, { quantity: newQuantity });
-      const updatedItems = cartItems.map(item => 
-        item.id === id ? { ...item, quantity: newQuantity } : item
-      );
-      setCartItems(updatedItems);
-      calculateTotal(updatedItems);
+      console.log('Updating quantity for item:', id, 'to:', newQuantity);
+  
+      const response = await api.put(`/api/shopping-cart/${id}`, { 
+        quantity: newQuantity 
+      });
+  
+      // 서버 응답에서 업데이트된 카트 아이템 정보 확인
+      if (response.data.cartItem) {
+        // 상품 정보와 결합하여 새로운 아이템 객체 생성
+        const updatedItem = {
+          id: response.data.cartItem.cart_idx,
+          name: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_name : item.name,
+          size: item.size,
+          price: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_price : item.price,
+          quantity: response.data.cartItem.quantity,
+          image: response.data.cartItem.Wear && response.data.cartItem.Wear.w_path ? 
+            response.data.cartItem.Wear.w_path.split(',')[0].trim() : item.image,
+          brand: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_brand : item.brand,
+          w_code: response.data.cartItem.w_code,
+          w_gender: response.data.cartItem.w_gender,
+        };
+  
+        // 카트 아이템 업데이트
+        const updatedItems = cartItems.map(cartItem => 
+          cartItem.id === id ? updatedItem : cartItem
+        );
+  
+        console.log('Updated cart items:', updatedItems);
+        setCartItems(updatedItems);
+        calculateTotal(updatedItems);
+      } else {
+        // 서버에서 응답은 성공했지만 카트 아이템 정보가 없는 경우
+        // 기존 로직대로 프론트엔드에서만 업데이트
+        const updatedItems = cartItems.map(item => 
+          item.id === id ? { ...item, quantity: newQuantity } : item
+        );
+        setCartItems(updatedItems);
+        calculateTotal(updatedItems);
+      }
+      
+      console.log('Successfully updated cart item quantity');
     } catch (error) {
       console.error('Failed to update quantity:', error);
-      alert('수량 변경에 실패했습니다.');
+      
+      if (error.response) {
+        if (error.response.status === 401) {
+          alert('로그인이 필요합니다.');
+          navigate('/login');
+        } else if (error.response.status === 400) {
+          // 재고 부족 등의 유효성 검사 에러 처리
+          alert(error.response.data.message || '수량 변경에 실패했습니다.');
+          
+          // 재고 정보가 포함된 경우 처리
+          if (error.response.data.availableStock) {
+            const updatedItems = cartItems.map(cartItem => 
+              cartItem.id === id ? { ...cartItem, quantity: error.response.data.availableStock } : cartItem
+            );
+            setCartItems(updatedItems);
+            calculateTotal(updatedItems);
+          } else {
+            // 실패한 경우 최신 데이터로 새로고침
+            fetchCartItems();
+          }
+        } else {
+          alert('수량 변경에 실패했습니다.');
+        }
+      } else if (error.request) {
+        alert('서버와 통신할 수 없습니다. 잠시 후 다시 시도해주세요.');
+        fetchCartItems();
+      } else {
+        alert('수량 변경 중 오류가 발생했습니다.');
+        fetchCartItems();
+      }
     }
   };
 
@@ -169,65 +238,66 @@ const ShoppingCartPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                      {cartItems.map(item => (
+                    {cartItems.map(item => (
                         <tr key={item.id} className="border-b">
-                          <td className="py-4 px-4">
+                            <td className="py-4 px-4">
                             <div className="flex items-center">
-                              <div 
+                                <div 
                                 className="w-24 h-50 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4 cursor-pointer"
                                 onClick={() => handleProductClick(item)}
-                              >
-                                <img 
-                                  src={item.image} 
-                                  alt={item.name} 
-                                  className="h-full w-full object-cover object-center"
-                                />
-                              </div>
-                              <div>
-                                <h3 
-                                  className="font-semibold text-lg cursor-pointer hover:underline"
-                                  onClick={() => handleProductClick(item)}
                                 >
-                                  {item.name}
+                                <img 
+                                    src={item.image} 
+                                    alt={item.name} 
+                                    className="h-full w-full object-cover object-center"
+                                />
+                                </div>
+                                <div>
+                                <h3 
+                                    className="font-semibold text-lg cursor-pointer hover:underline"
+                                    onClick={() => handleProductClick(item)}
+                                >
+                                    {item.name}
                                 </h3>
                                 <p className="text-gray-500 mt-1">브랜드: {item.brand}</p>
                                 <p className="text-gray-500">사이즈: {item.size}</p>
                                 <p className="text-gray-500">상품 코드: {item.w_code}</p> 
-                              </div>
+                                <p className="text-gray-500">단가: {item.price.toLocaleString()}원</p>
+                                </div>
                             </div>
-                          </td>
-                          <td className="text-center py-4 px-4">
+                            </td>
+                            <td className="text-center py-4 px-4">
                             <div className="flex items-center justify-center">
-                              <button
+                                <button
                                 onClick={() => updateQuantity(item.id, -1)}
                                 className="px-2 py-1 border rounded-l"
-                              >
+                                >
                                 -
-                              </button>
-                              <span className="px-4 py-1 border-t border-b">
+                                </button>
+                                <span className="px-4 py-1 border-t border-b">
                                 {item.quantity}
-                              </span>
-                              <button
+                                </span>
+                                <button
                                 onClick={() => updateQuantity(item.id, 1)}
                                 className="px-2 py-1 border rounded-r"
-                              >
+                                >
                                 +
-                              </button>
+                                </button>
                             </div>
-                          </td>
-                          <td className="text-center font-semibold py-4 px-4">
-                            {item.price.toLocaleString()}원
-                          </td>
-                          <td className="text-center py-4 px-4">
+                            </td>
+                            <td className="text-center font-semibold py-4 px-4">
+                            {(item.price * item.quantity).toLocaleString()}원
+                            </td>
+                            <td className="text-center py-4 px-4">
                             <button 
-                              onClick={() => removeItem(item.id)}
-                              className="text-red-500 hover:text-red-700"
+                                onClick={() => removeItem(item.id)}
+                                className="text-red-500 hover:text-red-700"
                             >
-                              삭제
+                                삭제
                             </button>
-                          </td>
+                            </td>
                         </tr>
-                      ))}
+                        ))}
                     </tbody>
                   </table>
                 )}

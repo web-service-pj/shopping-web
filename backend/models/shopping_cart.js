@@ -1,27 +1,30 @@
-const { DataTypes } = require('sequelize');
+const { Model, DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
+const Wear = require('./wear');
 
-const ShoppingCart = sequelize.define('ShoppingCart', {
+class ShoppingCart extends Model {}
+
+ShoppingCart.init({
   cart_idx: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true
   },
   userid: {
-    type: DataTypes.STRING(300),
-    allowNull: false,
+    type: DataTypes.STRING,
+    allowNull: false
   },
   wearidx: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: false
   },
   w_code: {
-    type: DataTypes.STRING(255),
-    allowNull: false,
+    type: DataTypes.STRING,
+    allowNull: false
   },
   w_gender: {
-    type: DataTypes.TINYINT(1),
-    allowNull: true,
+    type: DataTypes.INTEGER,
+    allowNull: false
   },
   quantity: {
     type: DataTypes.INTEGER,
@@ -30,12 +33,17 @@ const ShoppingCart = sequelize.define('ShoppingCart', {
   },
   added_date: {
     type: DataTypes.DATE,
-    allowNull: false,
     defaultValue: DataTypes.NOW
   }
 }, {
+  sequelize,
+  modelName: 'ShoppingCart',
   tableName: 'shopping_cart',
   timestamps: false
 });
+
+// 관계 설정
+ShoppingCart.belongsTo(Wear, { foreignKey: 'wearidx', targetKey: 'wearidx' });
+Wear.hasMany(ShoppingCart, { foreignKey: 'wearidx', sourceKey: 'wearidx' });
 
 module.exports = ShoppingCart;

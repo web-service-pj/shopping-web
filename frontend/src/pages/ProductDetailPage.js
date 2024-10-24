@@ -28,25 +28,10 @@ const ProductDetailPage = () => {
   const product = location.state?.product;
   const [selectedSize, setSelectedSize] = useState('');
   const [sizeStock, setSizeStock] = useState({});
-  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
-    const fetchUserId = async () => {
-      try {
-        const response = await api.get('/api/current-user');
-        setUserId(response.data.userId);
-      } catch (error) {
-        console.error('Failed to fetch user ID:', error);
-        if (error.response && error.response.status === 401) {
-          localStorage.removeItem('token');
-          navigate('/login');
-        }
-      }
-    };
-
-    fetchUserId();
-
+    
     if (product && product.w_size && product.w_stock) {
       const splitString = (str) => str.split(/[;,]/).map(item => item.trim());
       
@@ -60,15 +45,16 @@ const ProductDetailPage = () => {
       });
       setSizeStock(sizeStockObj);
     }
-  }, [product, navigate]);
+  }, [product]);
 
   const addToCart = async () => {
     if (!selectedSize) {
       alert('사이즈를 선택해주세요.');
       return;
     }
-  
-    if (!userId) {
+
+    const token = localStorage.getItem('token');
+    if (!token) {
       alert('로그인이 필요합니다.');
       navigate('/login');
       return;
@@ -88,7 +74,7 @@ const ProductDetailPage = () => {
       if (error.response) {
         console.error('Error response:', error.response.data);
         if (error.response.status === 401) {
-          alert('로그인 세션이 만료되었습니다. 다시 로그인해주세요.');
+          alert('로그인이 필요합니다.');
           navigate('/login');
         } else {
           alert(error.response.data.message || '장바구니 추가 중 오류가 발생했습니다.');
@@ -114,6 +100,7 @@ const ProductDetailPage = () => {
     <div className="ProductDetailPage">
       <Header />
       <div className="container mx-auto px-4 py-8">
+        {/* Rest of the JSX remains the same */}
         <div className="flex flex-wrap -mx-4">
           <div className="w-full md:w-1/2 px-4 mb-8">
             <Carousel
@@ -187,6 +174,7 @@ const ProductDetailPage = () => {
               </button>
             )}
             
+            {/* Details sections remain the same */}
             <div className="border-t pt-4">
               <details className="mb-6">
                 <summary className="font-bold cursor-pointer p-2">상세정보</summary> 

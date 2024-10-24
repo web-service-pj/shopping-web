@@ -373,23 +373,81 @@ app.put('/api/shopping-cart/:cartItemId', authenticateToken, async (req, res) =>
   try {
     const { cartItemId } = req.params;
     const { quantity } = req.body;
-    const userid = req.user.id;
+    const userId = req.user.id;
 
+    // 사용자 정보 조회
+    const user = await User.findByPk(userId, {
+      attributes: ['userid']
+    });
+
+    if (!user) {
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 장바구니 아이템 조회
     const cartItem = await ShoppingCart.findOne({
-      where: { cart_idx: cartItemId, userid }
+      where: { 
+        cart_idx: cartItemId,
+        userid: user.userid
+      }
     });
 
     if (!cartItem) {
       return res.status(404).json({ message: '장바구니 아이템을 찾을 수 없습니다.' });
     }
 
+    // 수량 유효성 검사
+    if (quantity <= 0) {
+      return res.status(400).json({ message: '수량은 1개 이상이어야 합니다.' });
+    }
+
+    // 재고 확인
+    const wear = await Wear.findByPk(cartItem.wearidx);
+    if (!wear) {
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    // 수량 업데이트
     cartItem.quantity = quantity;
     await cartItem.save();
 
-    res.json({ message: '장바구니 아이템이 업데이트되었습니다.', cartItem });
+    // 업데이트된 정보 조회
+    const updatedCartItem = await ShoppingCart.findOne({
+      where: { cart_idx: cartItemId },
+      include: [{
+        model: Wear,
+        attributes: ['wearidx', 'w_name', 'w_price', 'w_path', 'w_brand']
+      }]
+    });
+
+    // 응답 데이터 구성
+    const responseData = {
+      message: '장바구니 아이템이 업데이트되었습니다.',
+      cartItem: {
+        cart_idx: updatedCartItem.cart_idx,
+        quantity: updatedCartItem.quantity,
+        userid: updatedCartItem.userid,
+        wearidx: updatedCartItem.wearidx,
+        w_code: updatedCartItem.w_code,
+        w_gender: updatedCartItem.w_gender,
+        Wear: updatedCartItem.Wear ? {
+          wearidx: updatedCartItem.Wear.wearidx,
+          w_name: updatedCartItem.Wear.w_name,
+          w_price: updatedCartItem.Wear.w_price,
+          w_path: updatedCartItem.Wear.w_path,
+          w_brand: updatedCartItem.Wear.w_brand
+        } : null
+      }
+    };
+
+    res.json(responseData);
+
   } catch (error) {
     console.error('장바구니 아이템 업데이트 실패:', error);
-    res.status(500).json({ message: '서버 오류' });
+    res.status(500).json({ 
+      message: '서버 오류',
+      error: error.message 
+    });
   }
 });
 
