@@ -93,9 +93,7 @@ const ShoppingCartPage = () => {
         quantity: newQuantity 
       });
   
-      // 서버 응답에서 업데이트된 카트 아이템 정보 확인
       if (response.data.cartItem) {
-        // 상품 정보와 결합하여 새로운 아이템 객체 생성
         const updatedItem = {
           id: response.data.cartItem.cart_idx,
           name: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_name : item.name,
@@ -109,7 +107,6 @@ const ShoppingCartPage = () => {
           w_gender: response.data.cartItem.w_gender,
         };
   
-        // 카트 아이템 업데이트
         const updatedItems = cartItems.map(cartItem => 
           cartItem.id === id ? updatedItem : cartItem
         );
@@ -118,8 +115,6 @@ const ShoppingCartPage = () => {
         setCartItems(updatedItems);
         calculateTotal(updatedItems);
       } else {
-        // 서버에서 응답은 성공했지만 카트 아이템 정보가 없는 경우
-        // 기존 로직대로 프론트엔드에서만 업데이트
         const updatedItems = cartItems.map(item => 
           item.id === id ? { ...item, quantity: newQuantity } : item
         );
@@ -136,10 +131,8 @@ const ShoppingCartPage = () => {
           alert('로그인이 필요합니다.');
           navigate('/login');
         } else if (error.response.status === 400) {
-          // 재고 부족 등의 유효성 검사 에러 처리
           alert(error.response.data.message || '수량 변경에 실패했습니다.');
           
-          // 재고 정보가 포함된 경우 처리
           if (error.response.data.availableStock) {
             const updatedItems = cartItems.map(cartItem => 
               cartItem.id === id ? { ...cartItem, quantity: error.response.data.availableStock } : cartItem
@@ -147,7 +140,6 @@ const ShoppingCartPage = () => {
             setCartItems(updatedItems);
             calculateTotal(updatedItems);
           } else {
-            // 실패한 경우 최신 데이터로 새로고침
             fetchCartItems();
           }
         } else {
@@ -185,13 +177,10 @@ const ShoppingCartPage = () => {
 
   const applyPoints = () => {
     console.log(`Applying ${pointsToUse} points`);
-    // 포인트 적용 로직 구현
   };
 
   const handleCheckout = () => {
     console.log('Proceeding to checkout');
-    // 결제 페이지로 이동 로직 구현
-    // navigate('/checkout');
   };
 
   const handleProductClick = async (item) => {
@@ -217,7 +206,7 @@ const ShoppingCartPage = () => {
 
 
   return (
-    <div className="ShoppingCartPage  min-h-screen">
+    <div className="ShoppingCartPage min-h-screen">
       <Header />
       <div className="container mx-auto px-4 py-8">
         <h1 className="text-3xl font-bold mb-6">장바구니</h1>
@@ -228,13 +217,13 @@ const ShoppingCartPage = () => {
                 {cartItems.length === 0 ? (
                   <p className="text-center text-gray-500">장바구니가 비어 있습니다.</p>
                 ) : (
-                  <table className="w-full">
+                  <table className="w-full table-fixed">
                     <thead>
                       <tr className="border-b">
-                        <th className="text-left py-2 px-4">상품 정보</th>
-                        <th className="text-center py-2 px-4">수량</th>
-                        <th className="text-center py-2 px-4">가격</th>
-                        <th className="text-center py-2 px-4">비고</th>
+                        <th className="w-1/2 text-left py-2 px-4">상품 정보</th>
+                        <th className="w-1/6 text-center py-2 px-4">수량</th>
+                        <th className="w-1/6 text-center py-2 px-4">가격</th>
+                        <th className="w-1/6 text-center py-2 px-4">비고</th>
                       </tr>
                     </thead>
                     <tbody>
