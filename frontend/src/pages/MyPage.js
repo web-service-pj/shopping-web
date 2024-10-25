@@ -33,9 +33,9 @@ const MyPage = () => {
         const data = await response.json();
         setUserInfo({
           ...data,
-          membership: 'BASIC', //임시로 설정
-          points: 0, //임시로 설정
-          coupons: 0 //임시로 설정
+          membership: 'BASIC',
+          points: 0,
+          coupons: 0
         });
       } catch (error) {
         console.error('Error fetching user info:', error);
@@ -49,111 +49,123 @@ const MyPage = () => {
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
-      <div className="flex-grow container mx-auto px-4 py-8">
-        <h1 className="text-3xl font-bold mb-8">WORKSOUT</h1>
-        
-        <nav className="mb-8">
-          <ul className="flex space-x-4">
-            <li>남성</li>
-            <li>여성</li>
-            <li>생활</li>
-            <li>세일버 스케이트</li>
-            <li>브랜드</li>
-            <li className="text-red-500">세일</li>
-          </ul>
-        </nav>
-
-        <div className="bg-gray-100 p-6 mb-8">
-          <div className="flex justify-between items-center">
-            <div>
-              <h2 className="text-xl font-semibold">회원 이름</h2>
-              <p>{userInfo.name}</p>
+      <div className="flex-grow max-w-[1920px] mx-auto px-6 py-8 w-full">
+        <div className="bg-gray-50">
+          <div className="grid grid-cols-4 divide-x divide-gray-200">
+            <div className="px-8 py-6">
+              <div className="text-gray-500 text-sm mb-2">회원 이름</div>
+              <div className="text-lg">{userInfo.name}</div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">회원 등급</h2>
-              <p>{userInfo.membership}</p>
+            <div className="px-8 py-6">
+              <div className="text-gray-500 text-sm mb-2">회원 등급</div>
+              <div className="text-lg font-bold">BASIC</div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">적립금 & 예치금</h2>
-              <p>{userInfo.points}원</p>
+            <div className="px-8 py-6">
+              <div className="text-gray-500 text-sm mb-2">포인트</div>
+              <div className="text-lg">
+                <span className="font-bold">0</span>원
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-semibold">쿠폰</h2>
-              <p>{userInfo.coupons}개</p>
+            <div className="px-8 py-6 flex justify-between items-start">
+              <div>
+                <div className="text-gray-500 text-sm mb-2">쿠폰</div>
+                <div className="text-lg">
+                  <span className="font-bold">0</span>개
+                </div>
+              </div>
+              <button className="text-black text-sm">
+                내 정보 수정 &gt;
+              </button>
             </div>
           </div>
-          <button className="mt-4 text-blue-600">내 정보 수정 &gt;</button>
         </div>
 
-        <div className="flex">
-          <aside className="w-1/4 pr-8">
-            <h3 className="font-semibold mb-4">나의 주문</h3>
-            <ul className="space-y-2">
-              <li>전체 주문 내역</li>
-              <li>결제 취소 내역</li>
-              <li>반품 내역</li>
-            </ul>
+        <div className="flex gap-8 mt-8">
+          <aside className="w-64">
+            <div className="mb-8">
+              <h3 className="font-medium text-lg mb-4">나의 주문</h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="hover:text-gray-900 cursor-pointer">전체 주문 내역</li>
+                <li className="hover:text-gray-900 cursor-pointer">결제 취소 내역</li>
+                <li className="hover:text-gray-900 cursor-pointer">반품 내역</li>
+              </ul>
+            </div>
 
-            <h3 className="font-semibold mt-8 mb-4">나의 정보</h3>
-            <ul className="space-y-2">
-              <li>내 정보 수정</li>
-              <li>적립금 & 예치금</li>
-              <li>쿠폰 현황</li>
-              <li>응모 현황</li>
-            </ul>
-
-            <h3 className="font-semibold mt-8 mb-4">고객센터</h3>
-            <ul className="space-y-2">
-              <li>자주 묻는 질문</li>
-              <li>로그아웃</li>
-            </ul>
-          </aside>
-
-          <main className="w-3/4">
-            <h2 className="text-2xl font-semibold mb-6">나의 주문</h2>
-            <h3 className="text-xl mb-4">최근 주문 내역</h3>
-
-            <div className="mb-4">
-              <button 
-                className={`mr-2 p-2 ${activeTab === '전체 스토어' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                onClick={() => setActiveTab('전체 스토어')}>
-                전체 스토어
-              </button>
-              <button 
-                className={`mr-2 p-2 ${activeTab === '온라인 스토어' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                onClick={() => setActiveTab('온라인 스토어')}>
-                온라인 스토어
-              </button>
-              <button 
-                className={`mr-2 p-2 ${activeTab === '오프라인 스토어' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                onClick={() => setActiveTab('오프라인 스토어')}>
-                오프라인 스토어
-              </button>
-              <button 
-                className={`mr-2 p-2 ${activeTab === '라플 스토어' ? 'bg-blue-500 text-white' : 'bg-gray-200'}`}
-                onClick={() => setActiveTab('라플 스토어')}>
-                라플 스토어
-              </button>
+            <div className="mb-8">
+              <h3 className="font-medium text-lg mb-4">나의 정보</h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="hover:text-gray-900 cursor-pointer">내 정보 수정</li>
+                <li className="hover:text-gray-900 cursor-pointer">적립금 & 예치금</li>
+                <li className="hover:text-gray-900 cursor-pointer">쿠폰 현황</li>
+                <li className="hover:text-gray-900 cursor-pointer">응모 현황</li>
+              </ul>
             </div>
 
             <div>
-              {activeTab === '오프라인 스토어' && <p>주문내역이 없습니다.</p>}
-              {/* 다른 탭에 대한 내용도 여기에 추가 */}
+              <h3 className="font-medium text-lg mb-4">고객센터</h3>
+              <ul className="space-y-3 text-gray-600">
+                <li className="hover:text-gray-900 cursor-pointer">자주 묻는 질문</li>
+                <li className="hover:text-gray-900 cursor-pointer">로그아웃</li>
+              </ul>
+            </div>
+          </aside>
+
+          <main className="flex-1">
+            <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
+            <h3 className="text-lg mb-4">최근 주문 내역</h3>
+
+            <div className="mb-4 flex gap-2">
+              {['온라인 스토어', '오프라인 스토어'].map((tab) => (
+                <button
+                  key={tab}
+                  className={`px-4 py-2 rounded transition-colors
+                    ${activeTab === tab 
+                      ? 'bg-black text-white' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    }`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {tab}
+                </button>
+              ))}
             </div>
 
-            <div className="mt-8">
-              <h2 className="text-2xl font-semibold mb-6">나의 정보</h2>
-              <div className="space-y-4">
-              <p><strong>이메일:</strong> {userInfo.email || 'N/A'}</p>
-              <p><strong>성별:</strong> {userInfo.gender || 'N/A'}</p>
-              <p><strong>전화번호:</strong> {userInfo.phone || 'N/A'}</p>
-              <p><strong>주소:</strong> {userInfo.address || 'N/A'}</p>
-              <p><strong>가입일:</strong> {userInfo.registrationDate ? new Date(userInfo.registrationDate).toLocaleDateString() : 'N/A'}</p>
+            <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
+              {activeTab === '오프라인 스토어' && <p>구매내역이 없습니다.</p>}
             </div>
+
+            <div className="mt-12">
+              <h2 className="text-2xl font-medium mb-6">나의 정보</h2>
+              <div className="space-y-4 bg-gray-50 p-8 rounded-lg">
+                <div className="flex">
+                  <span className="w-24 text-gray-500">이메일:</span>
+                  <span>{userInfo.email || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-gray-500">성별:</span>
+                  <span>{userInfo.gender || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-gray-500">전화번호:</span>
+                  <span>{userInfo.phone || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-gray-500">주소:</span>
+                  <span>{userInfo.address || 'N/A'}</span>
+                </div>
+                <div className="flex">
+                  <span className="w-24 text-gray-500">가입일:</span>
+                  <span>
+                    {userInfo.registrationDate 
+                      ? new Date(userInfo.registrationDate).toLocaleDateString() 
+                      : 'N/A'}
+                  </span>
+                </div>
+              </div>
             </div>
           </main>
         </div>
-        </div>
+      </div>
       <Footer />
     </div>
   );

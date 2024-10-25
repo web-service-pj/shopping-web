@@ -7,7 +7,7 @@ const ProductCard = ({ product, onClick }) => (
     <div className="mt-2">
       <p className="text-sm text-gray-600">{product.brand}</p>
       <p className="text-sm">{product.name}</p>
-      <p className="text-sm font-bold">{product.price}</p>
+      <p className={`text-sm font-bold ${product.priceClassName}`}>{product.price}</p>
     </div>
   </div>
 );

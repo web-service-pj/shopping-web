@@ -4,12 +4,10 @@ import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import axios from 'axios';
 
-// axios 인스턴스 생성
 const api = axios.create({
-  baseURL: 'http://localhost:3005', // 백엔드 서버 주소
+  baseURL: 'http://localhost:3005',
 });
 
-// 요청 인터셉터 추가
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -204,11 +202,10 @@ const ShoppingCartPage = () => {
     }
   };
 
-
   return (
     <div className="ShoppingCartPage min-h-screen">
       <Header />
-      <div className="container mx-auto px-4 py-8">
+      <div className="max-w-[1920px] mx-auto px-6 py-8">
         <h1 className="text-3xl font-bold mb-6">장바구니</h1>
         <div className="flex flex-col lg:flex-row gap-8">
           <div className="lg:w-3/4">

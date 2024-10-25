@@ -6,12 +6,10 @@ import { Carousel } from 'react-responsive-carousel';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import axios from 'axios';
 
-// axios 인스턴스 생성
 const api = axios.create({
-  baseURL: 'http://localhost:3005', // 백엔드 서버 주소
+  baseURL: 'http://localhost:3005',
 });
 
-// 요청 인터셉터 추가
 api.interceptors.request.use((config) => {
   const token = localStorage.getItem('token');
   if (token) {
@@ -41,15 +39,22 @@ const ProductDetailPage = () => {
       const sizeStockObj = {};
       stocks.forEach(stock => {
         const [size, quantity] = stock.split(':').map(item => item.trim());
-        sizeStockObj[size] = quantity || '0';
+        sizeStockObj[size] = parseInt(quantity) || 0; // 문자열을 숫자로 변환
       });
       setSizeStock(sizeStockObj);
     }
   }, [product]);
 
+  const isOutOfStock = selectedSize && sizeStock[selectedSize] <= 0;
+
   const addToCart = async () => {
     if (!selectedSize) {
       alert('사이즈를 선택해주세요.');
+      return;
+    }
+
+    if (isOutOfStock) {
+      alert('선택하신 사이즈는 품절되었습니다.');
       return;
     }
 
@@ -89,6 +94,35 @@ const ProductDetailPage = () => {
     }
   };
 
+  const handlePurchase = () => {
+    if (!selectedSize) {
+      alert('사이즈를 선택해주세요.');
+      return;
+    }
+
+    if (isOutOfStock) {
+      alert('선택하신 사이즈는 품절되었습니다.');
+      return;
+    }
+  
+    const token = localStorage.getItem('token');
+    if (!token) {
+      alert('로그인이 필요합니다.');
+      navigate('/login');
+      return;
+    }
+  
+    navigate('/purchase', {
+      state: {
+        product: {
+          ...product,
+          selectedSize,
+          quantity: 1,
+        }
+      }
+    });
+  };
+
   if (!product) {
     return <div>Product not found</div>;
   }
@@ -100,7 +134,6 @@ const ProductDetailPage = () => {
     <div className="ProductDetailPage">
       <Header />
       <div className="container mx-auto px-4 py-8">
-        {/* Rest of the JSX remains the same */}
         <div className="flex flex-wrap -mx-4">
           <div className="w-full md:w-1/2 px-4 mb-8">
             <Carousel
@@ -134,8 +167,15 @@ const ProductDetailPage = () => {
               {sizes.map(size => (
                 <button 
                   key={size}
-                  className={`mr-2 px-4 py-2 border ${selectedSize === size ? 'bg-black text-white' : ''}`}
-                  onClick={() => setSelectedSize(size)}
+                  className={`mr-2 px-4 py-2 border ${
+                    selectedSize === size 
+                      ? 'bg-black text-white' 
+                      : sizeStock[size] <= 0
+                        ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        : ''
+                  }`}
+                  onClick={() => sizeStock[size] > 0 && setSelectedSize(size)}
+                  disabled={sizeStock[size] <= 0}
                 >
                   {size}
                 </button>
@@ -143,7 +183,13 @@ const ProductDetailPage = () => {
             </div>
 
             {selectedSize && (
-              <p className="mb-4">재고: {sizeStock[selectedSize]}</p>
+              <p className="mb-4">
+                {isOutOfStock ? (
+                  <span className="text-red-500">품절</span>
+                ) : (
+                  `재고: ${sizeStock[selectedSize]}`
+                )}
+              </p>
             )} 
             
             <p className="mb-2">키/몸무게: 183 / 57kg</p>
@@ -153,19 +199,29 @@ const ProductDetailPage = () => {
             <button className="text-gray-700 mb-4 block underline hover:text-gray-900">상품 정보 고시</button>
             
             {selectedSize ? (
-              <div className="flex space-x-4 mb-4">
+              isOutOfStock ? (
                 <button 
-                  className="w-1/2 py-3 px-4 rounded text-white bg-black"
+                  className="w-full py-3 px-4 rounded text-white bg-gray-400 mb-4"
+                  disabled
                 >
-                  구매하기
+                  품절된 상품입니다
                 </button>
-                <button 
-                  className="w-1/2 py-3 px-4 rounded text-black border border-black bg-white"
-                  onClick={addToCart}
-                >
-                  장바구니 담기
-                </button>
-              </div>
+              ) : (
+                <div className="flex space-x-4 mb-4">
+                  <button 
+                    className="w-1/2 py-3 px-4 rounded text-white bg-black"
+                    onClick={handlePurchase}
+                  >
+                    구매하기
+                  </button>
+                  <button 
+                    className="w-1/2 py-3 px-4 rounded text-black border border-black bg-white"
+                    onClick={addToCart}
+                  >
+                    장바구니 담기
+                  </button>
+                </div>
+              )
             ) : (
               <button 
                 className="w-full py-3 px-4 rounded text-white bg-gray-400 mb-4"
@@ -174,7 +230,6 @@ const ProductDetailPage = () => {
               </button>
             )}
             
-            {/* Details sections remain the same */}
             <div className="border-t pt-4">
               <details className="mb-6">
                 <summary className="font-bold cursor-pointer p-2">상세정보</summary> 

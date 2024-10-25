@@ -39,7 +39,7 @@ const LoginForm = () => {
         localStorage.setItem('token', data.token);
         localStorage.setItem('user', JSON.stringify({
           ...data.user,
-          isSocialLogin: false, // 일반 로그인의 경우
+          isSocialLogin: false,
         }));
         checkTokenExpiration();
         alert('로그인 성공!');
@@ -54,7 +54,7 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6">
+    <div className="max-w-md mx-auto mt-4 p-6">
       <h2 className="text-2xl font-semibold mb-6">로그인</h2>
       {error && <p className="text-red-500 mb-4">{error}</p>}
       <form className="space-y-4" onSubmit={handleSubmit}>
@@ -93,17 +93,19 @@ const LoginForm = () => {
             <button type="button" className="text-gray-600">비밀번호 찾기</button>
           </div>
         </div>
-        <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
-          로그인
-        </button>
-        <div className="text-center">
-          <button type="button" className="text-sm text-gray-600">비회원 주문조회</button>
-        </div>
+        <div className="space-y-8"> 
+        <div className="space-y-1"> 
+          <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
+            로그인
+          </button> 
+          <KakaoLogin />
+          </div>
+          <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
+            회원가입
+          </button>
+          </div>
       </form>
-      <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
-        회원가입
-      </button>
-      <KakaoLogin />
+      
       <div className="mt-6 text-center text-sm">
         <p>신규회원 가입하고 <span className="text-red-500 underline">5% 할인 쿠폰</span> 받아보세요.</p>
       </div>

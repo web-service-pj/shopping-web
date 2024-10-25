@@ -11,6 +11,7 @@ import Women from './pages/WomenPage'
 import Brand from './pages/BrandPage'
 import BrandProductPage from './pages/BrandProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
+import ProductPurchasePage from './pages/ProductPurchasePage';
 import MyPage from './pages/MyPage';
 import Cart from './pages/ShoppingCartPage';
 import KakaoCallback from './pages/KakaoCallback';
@@ -39,6 +40,7 @@ function App() {
         <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />
         <Route path="/mypage" element={<MyPage />} />
         <Route path="/cart" element={<Cart />} />
+        <Route path="/purchase" element={<ProductPurchasePage />} /> 
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
       </Routes>
     </Router>
