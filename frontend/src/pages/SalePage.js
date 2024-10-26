@@ -14,8 +14,8 @@ const SalePage = () => {
       try {
         // 남성과 여성 제품 모두 가져오기
         const [menResponse, womenResponse] = await Promise.all([
-          fetch('http://localhost:3005/api/men-products'),
-          fetch('http://localhost:3005/api/women-products')
+          fetch('/api/men-products'),
+          fetch('/api/women-products')
         ]);
 
         if (!menResponse.ok || !womenResponse.ok) {

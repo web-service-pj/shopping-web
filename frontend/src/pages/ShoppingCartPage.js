@@ -5,7 +5,7 @@ import Footer from '../components/common/footer';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3005',
+  baseURL: '',
 });
 
 api.interceptors.request.use((config) => {
