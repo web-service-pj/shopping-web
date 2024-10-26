@@ -26,6 +26,9 @@ const ProductDetailPage = () => {
   const product = location.state?.product;
   const [selectedSize, setSelectedSize] = useState('');
   const [sizeStock, setSizeStock] = useState({});
+  const [isOnSale, setIsOnSale] = useState(false);
+  const [originalPrice, setOriginalPrice] = useState(0);
+  const [salePrice, setSalePrice] = useState(0);
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -39,9 +42,21 @@ const ProductDetailPage = () => {
       const sizeStockObj = {};
       stocks.forEach(stock => {
         const [size, quantity] = stock.split(':').map(item => item.trim());
-        sizeStockObj[size] = parseInt(quantity) || 0; // 문자열을 숫자로 변환
+        sizeStockObj[size] = parseInt(quantity) || 0;
       });
       setSizeStock(sizeStockObj);
+
+      // 세일 여부 확인 및 가격 계산
+      const currentDate = new Date();
+      const twoYearsAgo = new Date();
+      twoYearsAgo.setFullYear(currentDate.getFullYear() - 2);
+      
+      const productDate = new Date(product.w_date);
+      const isOldProduct = productDate < twoYearsAgo;
+      
+      setIsOnSale(isOldProduct);
+      setOriginalPrice(product.w_price);
+      setSalePrice(isOldProduct ? Math.floor(product.w_price * 0.5) : product.w_price);
     }
   }, [product]);
 
@@ -71,24 +86,27 @@ const ProductDetailPage = () => {
         quantity: 1,
         w_code: product.w_code,
         w_gender: product.w_gender,
+        size: selectedSize
       });
   
       alert(response.data.message || '장바구니에 추가되었습니다.');
     } catch (error) {
-      console.error('Failed to add to cart:', error);
+      console.error('장바구니 추가 실패:', error);
       if (error.response) {
-        console.error('Error response:', error.response.data);
+        console.error('에러 응답:', error.response.data);
         if (error.response.status === 401) {
           alert('로그인이 필요합니다.');
           navigate('/login');
+        } else if (error.response.status === 400 && error.response.data.message.includes('재고')) {
+          alert('선택하신 사이즈의 재고가 부족합니다.');
         } else {
           alert(error.response.data.message || '장바구니 추가 중 오류가 발생했습니다.');
         }
       } else if (error.request) {
-        console.error('Error request:', error.request);
+        console.error('요청 에러:', error.request);
         alert('서버에 연결할 수 없습니다.');
       } else {
-        console.error('Error', error.message);
+        console.error('에러', error.message);
         alert('알 수 없는 오류가 발생했습니다.');
       }
     }
@@ -156,12 +174,29 @@ const ProductDetailPage = () => {
           <div className="w-full md:w-1/2 px-4">
             <div className="flex justify-between items-center mb-4">
               <span className="text-xl font-bold">{product.w_brand}</span>
-              <button className="text-2xl">☆</button>
             </div>
-            <p className="text-sm text-gray-600 mb-2">신상품</p>
+            {isOnSale && (
+              <div className="bg-red-500 text-white px-2 py-1 inline-block mb-2">
+                50%
+              </div>
+            )}
             <h1 className="text-2xl font-bold mb-2">{product.w_name}</h1>
             <p className="mb-4">{product.w_code}</p>
-            <p className="text-2xl font-bold mb-4">정상가 {`${product.w_price.toLocaleString()}원`}</p>
+            
+            {isOnSale ? (
+              <div className="mb-4">
+                <p className="text-2xl line-through text-gray-400">
+                  {`${originalPrice.toLocaleString()}원`}
+                </p>
+                <p className="text-2xl font-bold text-red-500">
+                  {`${salePrice.toLocaleString()}원`}
+                </p>
+              </div>
+            ) : (
+              <p className="text-2xl font-bold mb-4">
+                {`${originalPrice.toLocaleString()}원`}
+              </p>
+            )}
             
             <div className="flex mb-4">
               {sizes.map(size => (

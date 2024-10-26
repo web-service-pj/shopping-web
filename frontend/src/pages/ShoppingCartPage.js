@@ -47,8 +47,9 @@ const ShoppingCartPage = () => {
   
       const items = response.data.map(item => ({
         id: item.cart_idx,
+        wearidx: item.wearidx,       
         name: item.wear ? item.wear.w_name : 'Unknown Product',
-        size: 'N/A',
+        size: item.size || 'N/A', 
         price: item.wear ? item.wear.w_price : 0,
         quantity: item.quantity,
         image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : '/api/placeholder/240/240',
@@ -95,7 +96,7 @@ const ShoppingCartPage = () => {
         const updatedItem = {
           id: response.data.cartItem.cart_idx,
           name: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_name : item.name,
-          size: item.size,
+          size: response.data.cartItem.size || item.size,
           price: response.data.cartItem.Wear ? response.data.cartItem.Wear.w_price : item.price,
           quantity: response.data.cartItem.quantity,
           image: response.data.cartItem.Wear && response.data.cartItem.Wear.w_path ? 
@@ -178,8 +179,32 @@ const ShoppingCartPage = () => {
   };
 
   const handleCheckout = () => {
-    console.log('Proceeding to checkout');
+    if (cartItems.length === 0) {
+      alert('장바구니가 비어 있습니다.');
+      return;
+    }
+  
+    const productsForPurchase = cartItems.map(item => ({
+      wearidx: item.wearidx,
+      name: item.name,
+      brand: item.brand,
+      size: item.size,
+      price: item.price,
+      quantity: item.quantity,
+      image: item.image,
+      w_code: item.w_code,
+      w_gender: item.w_gender,
+      selectedSize: item.size  
+    }));
+  
+    navigate('/purchase', { 
+      state: { 
+        products: productsForPurchase,
+        isCartPurchase: true  
+      }
+    });
   };
+  
 
   const handleProductClick = async (item) => {
     try {
@@ -229,7 +254,7 @@ const ShoppingCartPage = () => {
                             <td className="py-4 px-4">
                             <div className="flex items-center">
                                 <div 
-                                className="w-24 h-50 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4 cursor-pointer"
+                                className="w-40 h-70 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4 cursor-pointer"
                                 onClick={() => handleProductClick(item)}
                                 >
                                 <img 
