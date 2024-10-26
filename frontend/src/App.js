@@ -8,7 +8,6 @@ import Login from './pages/LoginPage'
 import SignUp from './pages/SignUpPage'
 import Men from './pages/MenPage'
 import Women from './pages/WomenPage'
-import Sale from './pages/SalePage'
 import Brand from './pages/BrandPage'
 import BrandProductPage from './pages/BrandProductPage';
 import ProductDetailPage from './pages/ProductDetailPage';
@@ -37,7 +36,6 @@ function App() {
         <Route path="/men/:productCode" element={<ProductDetailPage />} />
         <Route path="/women" element={<Women />} />
         <Route path="/women/:productName" element={<ProductDetailPage gender="women" />} /> 
-        <Route path="/sale" element={<Sale />} />
         <Route path="/brands" element={<Brand />} />
         <Route path="/brands/:brandName/products" element={<BrandProductPage />} />
         <Route path="/brands/:brandName/:productCode" element={<ProductDetailPage />} />

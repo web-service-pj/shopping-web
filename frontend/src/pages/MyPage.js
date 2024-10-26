@@ -2,31 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
-import axios from 'axios';
-
-const api = axios.create({
-  baseURL: 'http://localhost:3005',
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers['Authorization'] = `Bearer ${token}`;
-  }
-  return config;
-}, (error) => {
-  return Promise.reject(error);
-});
-
-const OrderStatus = {
-  PENDING: '배송 준비중',
-  SHIPPING: '배송중',
-  DELIVERED: '배송 완료',
-  CANCELED: '주문 취소'
-};
+import api from '../utils/api';
+import { checkTokenExpiration } from '../utils/auth';
 
 const MyPage = () => {
-  const [activeTab, setActiveTab] = useState('온라인 스토어');
+  const [activeTab, setActiveTab] = useState('전체 스토어');
   const [userInfo, setUserInfo] = useState({
     name: '',
     email: '',
@@ -38,123 +18,33 @@ const MyPage = () => {
     points: 0,
     coupons: 0
   });
-  const [orders, setOrders] = useState([]);
-  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
+    const fetchUserInfo = async () => {
       try {
-        // 사용자 정보 가져오기
-        const userResponse = await api.get('/api/user');
+        checkTokenExpiration();
+        const response = await api.fetch('http://localhost:3005/api/user');
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch user info');
+        }
+
+        const data = await response.json();
         setUserInfo({
-          ...userResponse.data,
+          ...data,
           membership: 'BASIC',
           points: 0,
           coupons: 0
         });
-
-        // 주문 내역 가져오기
-        const ordersResponse = await api.get('/api/purchases');
-        setOrders(ordersResponse.data);
       } catch (error) {
-        console.error('데이터 조회 실패:', error);
-        if (error.response?.status === 401) {
-          navigate('/login');
-        }
-      } finally {
-        setLoading(false);
+        console.error('Error fetching user info:', error);
+        navigate('/login');
       }
     };
 
-    fetchData();
+    fetchUserInfo();
   }, [navigate]);
-
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-blue-100 text-blue-800';
-      case 'SHIPPING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    navigate('/login');
-  };
-
-  const OrderItem = ({ order }) => {
-    const imagePath = order.Wear?.w_path ? 
-      order.Wear.w_path.split(',')[0].trim() : 
-      '/api/placeholder/240/240';
-
-    return (
-      <div className="border rounded-lg p-6 mb-4 bg-white">
-        <div className="flex justify-between items-start mb-4">
-          <div>
-            <p className="text-sm text-gray-500 mb-1">{new Date(order.purchase_date).toLocaleDateString()}</p>
-            <p className="font-medium">주문번호: {order.order_number}</p>
-          </div>
-          <span className={`px-3 py-1 rounded-full text-sm ${getStatusBadgeColor(order.status)}`}>
-            {OrderStatus[order.status] || order.status}
-          </span>
-        </div>
-
-        <div className="flex gap-4">
-          <div className="w-40 h-70 flex-shrink-0 overflow-hidden rounded-md border border-gray-200">
-            <img
-              src={imagePath}
-              alt={order.Wear?.w_name || '상품 이미지'}
-              className="h-full w-full object-cover object-center"
-              onError={(e) => {
-                e.target.onerror = null;
-                e.target.src = '/api/placeholder/240/240';
-              }}
-            />
-          </div>
-          <div className="flex-grow">
-            <p className="font-medium mb-1">{order.Wear?.w_brand}</p>
-            <p className="text-gray-600 mb-2">{order.Wear?.w_name}</p>
-            <p className="text-sm text-gray-500">
-              {order.size && `사이즈: ${order.size}`}
-            </p>
-            <p className="font-bold mt-2">
-              {order.total_amount?.toLocaleString()}원
-              {order.used_point > 0 && (
-                <span className="text-sm text-gray-500 ml-2">
-                  (포인트 사용: {order.used_point.toLocaleString()}원)
-                </span>
-              )}
-            </p>
-          </div>
-        </div>
-
-        <div className="mt-4 pt-4 border-t">
-          <p className="text-sm text-gray-600">
-            수령인: {order.recipient_name}
-          </p>
-          <p className="text-sm text-gray-600">
-            연락처: {order.recipient_phone}
-          </p>
-          <p className="text-sm text-gray-600">
-            배송지: {order.recipient_address}
-          </p>
-          {order.delivery_request && (
-            <p className="text-sm text-gray-600 mt-1">
-              요청사항: {order.delivery_request}
-            </p>
-          )}
-        </div>
-      </div>
-    );
-  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -215,12 +105,7 @@ const MyPage = () => {
               <h3 className="font-medium text-lg mb-4">고객센터</h3>
               <ul className="space-y-3 text-gray-600">
                 <li className="hover:text-gray-900 cursor-pointer">자주 묻는 질문</li>
-                <li 
-                  className="hover:text-gray-900 cursor-pointer"
-                  onClick={handleLogout}
-                >
-                  로그아웃
-                </li>
+                <li className="hover:text-gray-900 cursor-pointer">로그아웃</li>
               </ul>
             </div>
           </aside>
@@ -245,27 +130,9 @@ const MyPage = () => {
               ))}
             </div>
 
-            {activeTab === '온라인 스토어' && (
-              <div className="space-y-4">
-                {loading ? (
-                  <div className="text-center py-8">로딩 중...</div>
-                ) : orders.length > 0 ? (
-                  orders.map((order) => (
-                    <OrderItem key={order.order_number} order={order} />
-                  ))
-                ) : (
-                  <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
-                    <p>주문 내역이 없습니다.</p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === '오프라인 스토어' && (
-              <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
-                <p>구매내역이 없습니다.</p>
-              </div>
-            )}
+            <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
+              {activeTab === '오프라인 스토어' && <p>구매내역이 없습니다.</p>}
+            </div>
 
             <div className="mt-12">
               <h2 className="text-2xl font-medium mb-6">나의 정보</h2>
