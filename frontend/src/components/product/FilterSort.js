@@ -6,7 +6,6 @@ const FilterSort = ({ onSortChange, currentSort }) => (
       <select className="border p-2 text-sm">
         <option>필터</option>
       </select>
-      <button className="text-sm">새 상품 보기</button>
     </div>
     <select 
       className="border p-2 text-sm"

@@ -4,6 +4,7 @@ const sequelize = require('./config/database');
 const User = require('./models/user');
 const Wear = require('./models/wear');
 const ShoppingCart = require('./models/shopping_cart');
+const PurchaseList = require('./models/purchase_list');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
@@ -544,4 +545,211 @@ app.listen(PORT, () => {
 }); 
 
 
+
+
+
+// 주문 번호 생성 함수
+const generateOrderNumber = () => {
+  const date = new Date();
+  const year = date.getFullYear().toString().slice(-2);
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  const random = Math.floor(Math.random() * 10000).toString().padStart(4, '0');
+  return `${year}${month}${day}-${random}`;
+};
+
+// 구매 API
+app.post('/api/purchase', authenticateToken, async (req, res) => {
+  console.log('구매 요청 시작');
+  const t = await sequelize.transaction();
+  
+  try {
+    const { 
+      wearidx,
+      selectedSize,  // 선택한 사이즈
+      quantity = 1,
+      recipientName, 
+      recipientPhone, 
+      recipientAddress,
+      deliveryRequest,
+      totalAmount,
+      usedPoint 
+    } = req.body;
+
+    console.log('구매 요청 데이터:', {
+      wearidx,
+      selectedSize,
+      quantity,
+      recipientName,
+      recipientPhone,
+      recipientAddress,
+      totalAmount,
+      usedPoint
+    });
+
+    const useridx = req.user.id;
+
+    // 상품 재고 확인
+    const wear = await Wear.findByPk(wearidx, { transaction: t });
+    if (!wear) {
+      await t.rollback();
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    // 사이즈별 재고 파싱 (세미콜론과 쉼표 모두 처리)
+    const stockBySize = {};
+    const sizeGroups = wear.w_stock.split(';');
+    
+    sizeGroups.forEach(group => {
+      const sizeEntries = group.split(',');
+      sizeEntries.forEach(entry => {
+        const [size, stock] = entry.split(':');
+        stockBySize[size] = parseInt(stock);
+      });
+    });
+
+    console.log('파싱된 재고 정보:', stockBySize);
+    
+    // 선택한 사이즈의 재고 확인
+    if (!stockBySize.hasOwnProperty(selectedSize)) {
+      await t.rollback();
+      return res.status(400).json({ message: '유효하지 않은 사이즈입니다.' });
+    }
+
+    if (stockBySize[selectedSize] < quantity) {
+      await t.rollback();
+      return res.status(400).json({ 
+        message: '선택한 사이즈의 재고가 부족합니다.',
+        available: stockBySize[selectedSize]
+      });
+    }
+
+    // 사용자 확인 및 포인트 검증
+    const user = await User.findByPk(useridx, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    if (usedPoint > 0 && user.user_point < usedPoint) {
+      await t.rollback();
+      return res.status(400).json({ message: '사용 가능한 포인트가 부족합니다.' });
+    }
+
+    const orderNumber = generateOrderNumber();
+    console.log('생성된 주문번호:', orderNumber);
+
+    // 구매 기록 생성 (size 필드 포함)
+    const purchase = await PurchaseList.create({
+      useridx,
+      wearidx,
+      size: selectedSize,        // size 정보 저장
+      quantity,
+      order_number: orderNumber,
+      recipient_name: recipientName,
+      recipient_phone: recipientPhone,
+      recipient_address: recipientAddress,
+      delivery_request: deliveryRequest,
+      total_amount: totalAmount,
+      used_point: usedPoint,
+      status: 'PENDING'
+    }, { transaction: t });
+
+    console.log('구매 기록 생성 완료');
+
+    // 선택한 사이즈의 재고 감소
+    stockBySize[selectedSize] -= quantity;
+
+    // 원래 재고 문자열의 구조를 유지하면서 업데이트
+    const originalGroups = wear.w_stock.split(';');
+    const updatedGroups = originalGroups.map(group => {
+      return group.split(',').map(entry => {
+        const [size, _] = entry.split(':');
+        return `${size}:${stockBySize[size]}`;
+      }).join(',');
+    });
+
+    const newStockString = updatedGroups.join(';');
+    console.log('업데이트할 재고 문자열:', newStockString);
+
+    // 재고 업데이트
+    await wear.update({
+      w_stock: newStockString
+    }, { transaction: t });
+
+    console.log('재고 업데이트 완료. 새로운 재고:', newStockString);
+
+    // 포인트 차감
+    if (usedPoint > 0) {
+      await user.update({
+        user_point: user.user_point - usedPoint
+      }, { transaction: t });
+      console.log('포인트 차감 완료');
+    }
+
+    // 트랜잭션 커밋
+    await t.commit();
+    console.log('트랜잭션 커밋 완료');
+
+    res.status(201).json({
+      message: '주문이 완료되었습니다.',
+      orderNumber: orderNumber,
+      purchase: purchase
+    });
+
+  } catch (error) {
+    // 에러 발생 시 롤백
+    await t.rollback();
+    console.error('구매 처리 실패:', error);
+    res.status(500).json({ message: '주문 처리 중 오류가 발생했습니다.' });
+  }
+  console.log('구매 요청 처리 종료');
+});
+
+// 구매 내역 조회 API
+app.get('/api/purchases', authenticateToken, async (req, res) => {
+  try {
+    const purchases = await PurchaseList.findAll({
+      where: { useridx: req.user.id },
+      include: [{
+        model: Wear,
+        attributes: ['w_name', 'w_price', 'w_path', 'w_brand']
+      }],
+      attributes: {
+        include: ['size', 'quantity'] // size와 quantity 필드 명시적 포함
+      },
+      order: [['purchase_date', 'DESC']]
+    });
+
+    res.json(purchases);
+  } catch (error) {
+    console.error('구매 내역 조회 실패:', error);
+    res.status(500).json({ message: '구매 내역 조회 중 오류가 발생했습니다.' });
+  }
+});
+
+// 단일 구매 내역 조회 API
+app.get('/api/purchases/:orderNumber', authenticateToken, async (req, res) => {
+  try {
+    const purchase = await PurchaseList.findOne({
+      where: { 
+        order_number: req.params.orderNumber,
+        useridx: req.user.id
+      },
+      include: [{
+        model: Wear,
+        attributes: ['w_name', 'w_price', 'w_path', 'w_brand']
+      }]
+    });
+
+    if (!purchase) {
+      return res.status(404).json({ message: '주문을 찾을 수 없습니다.' });
+    }
+
+    res.json(purchase);
+  } catch (error) {
+    console.error('구매 내역 조회 실패:', error);
+    res.status(500).json({ message: '구매 내역 조회 중 오류가 발생했습니다.' });
+  }
+});
 

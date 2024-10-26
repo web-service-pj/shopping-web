@@ -344,7 +344,7 @@ const ShoppingCartPage = () => {
                 </div>
                 <button
                   onClick={handleCheckout}
-                  className="w-full bg-red-500 text-white py-3 px-4 rounded-md mt-6 hover:bg-red-600 transition duration-300"
+                  className="w-full bg-red-500 text-white py-3 px-4 rounded-md mt-6 hover:bg-red-600 transition duration-300 text-xl font-bold"
                 >
                   결제하기
                 </button>
