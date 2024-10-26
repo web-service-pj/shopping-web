@@ -34,6 +34,10 @@ ShoppingCart.init({
   added_date: {
     type: DataTypes.DATE,
     defaultValue: DataTypes.NOW
+  },
+  size: {
+    type: DataTypes.STRING,
+    allowNull: true
   }
 }, {
   sequelize,

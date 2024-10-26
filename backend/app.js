@@ -272,44 +272,251 @@ app.get('/api/brand-products/:brandName', async (req, res) => {
   }
 });
 
-// 장바구니에 상품 추가 API
 app.post('/api/shopping-cart', authenticateToken, async (req, res) => {
+  const t = await sequelize.transaction();
+  
   try {
-    const { wearidx, quantity, w_code, w_gender } = req.body;
-    const userid = req.user.id;
+    const { wearidx, quantity, size, w_code, w_gender } = req.body;
+    const userId = req.user.id;
 
-    console.log('Received request:', { userid, wearidx, quantity, w_code, w_gender });
+    // 사용자 정보 조회
+    const user = await User.findByPk(userId, {
+      attributes: ['userid']
+    }, { transaction: t });
 
-    if (!wearidx || !quantity || !w_code) {
-      return res.status(400).json({ message: '필수 정보가 누락되었습니다.' });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    // 사용자 존재 여부 확인 (선택적)
-    const user = await User.findByPk(userid);
+    // 상품 정보 조회
+    const wear = await Wear.findByPk(wearidx, { transaction: t });
+    if (!wear) {
+      await t.rollback();
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    // 재고 확인
+    const stockBySize = {};
+    wear.w_stock.split(';').forEach(group => {
+      group.split(',').forEach(entry => {
+        const [sizeKey, stock] = entry.split(':').map(s => s.trim());
+        stockBySize[sizeKey] = parseInt(stock);
+      });
+    });
+
+    if (!stockBySize[size]) {
+      await t.rollback();
+      return res.status(400).json({ message: '선택한 사이즈의 재고가 없습니다.' });
+    }
+
+    if (stockBySize[size] < quantity) {
+      await t.rollback();
+      return res.status(400).json({ 
+        message: '재고가 부족합니다.',
+        available: stockBySize[size]
+      });
+    }
+
+    // 이미 장바구니에 있는 상품인지 확인
+    const existingCartItem = await ShoppingCart.findOne({
+      where: {
+        userid: user.userid,
+        wearidx: wearidx,
+        size: size
+      }
+    }, { transaction: t });
+
+    if (existingCartItem) {
+      // 이미 있는 상품이면 수량만 업데이트
+      const newQuantity = existingCartItem.quantity + quantity;
+      if (stockBySize[size] < newQuantity) {
+        await t.rollback();
+        return res.status(400).json({ 
+          message: '재고가 부족합니다.',
+          available: stockBySize[size]
+        });
+      }
+
+      await existingCartItem.update({
+        quantity: newQuantity
+      }, { transaction: t });
+
+      await t.commit();
+      return res.json({ 
+        message: '장바구니 수량이 업데이트되었습니다.',
+        cartItem: existingCartItem
+      });
+    }
+
+    // 새로운 장바구니 아이템 생성
+    const cartItem = await ShoppingCart.create({
+      userid: user.userid,
+      wearidx: wearidx,
+      quantity: quantity,
+      size: size,
+      w_code: w_code,
+      w_gender: w_gender
+    }, { transaction: t });
+
+    await t.commit();
+    res.status(201).json({ 
+      message: '장바구니에 상품이 추가되었습니다.',
+      cartItem: cartItem
+    });
+
+  } catch (error) {
+    await t.rollback();
+    console.error('장바구니 추가 실패:', error);
+    res.status(500).json({ message: '장바구니 추가 중 오류가 발생했습니다.' });
+  }
+});
+
+app.post('/api/purchase', authenticateToken, async (req, res) => {
+  console.log('구매 요청 시작');
+  const t = await sequelize.transaction();
+  
+  try {
+    const { 
+      wearidx,
+      selectedSize,
+      quantity = 1,
+      recipientName, 
+      recipientPhone, 
+      recipientAddress,
+      deliveryRequest,
+      totalAmount,
+      usedPoint,
+      isCartPurchase = false
+    } = req.body;
+
+    const useridx = req.user.id;
+
+    // 상품 재고 확인
+    const wear = await Wear.findByPk(wearidx, { transaction: t });
+    if (!wear) {
+      await t.rollback();
+      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
+    }
+
+    // 사이즈별 재고 파싱
+    const stockBySize = {};
+    const sizeGroups = wear.w_stock.split(';');
+    
+    sizeGroups.forEach(group => {
+      const sizeEntries = group.split(',');
+      sizeEntries.forEach(entry => {
+        const [size, stock] = entry.split(':');
+        stockBySize[size] = parseInt(stock);
+      });
+    });
+
+    // 선택한 사이즈의 재고 확인
+    if (!stockBySize.hasOwnProperty(selectedSize)) {
+      await t.rollback();
+      return res.status(400).json({ message: '유효하지 않은 사이즈입니다.' });
+    }
+
+    if (stockBySize[selectedSize] < quantity) {
+      await t.rollback();
+      return res.status(400).json({ 
+        message: '선택한 사이즈의 재고가 부족합니다.',
+        available: stockBySize[selectedSize]
+      });
+    }
+
+    // 사용자 확인 및 포인트 검증
+    const user = await User.findByPk(useridx, { transaction: t });
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    if (usedPoint > 0 && user.user_point < usedPoint) {
+      await t.rollback();
+      return res.status(400).json({ message: '사용 가능한 포인트가 부족합니다.' });
+    }
+
+    const orderNumber = generateOrderNumber();
+    
+    // 재고 업데이트
+    stockBySize[selectedSize] -= quantity;
+    const newStockString = sizeGroups.map(group => {
+      return group.split(',').map(entry => {
+        const [size, _] = entry.split(':');
+        return `${size}:${stockBySize[size]}`;
+      }).join(',');
+    }).join(';');
+
+    await wear.update({
+      w_stock: newStockString
+    }, { transaction: t });
+
+    // 구매 기록 생성
+    const purchase = await PurchaseList.create({
+      useridx,
+      wearidx,
+      size: selectedSize,
+      quantity,
+      order_number: orderNumber,
+      recipient_name: recipientName,
+      recipient_phone: recipientPhone,
+      recipient_address: recipientAddress,
+      delivery_request: deliveryRequest,
+      total_amount: totalAmount,
+      used_point: usedPoint,
+      status: 'PENDING'
+    }, { transaction: t });
+
+    // 포인트 차감
+    if (usedPoint > 0) {
+      await user.update({
+        user_point: user.user_point - usedPoint
+      }, { transaction: t });
+    }
+
+    // 장바구니에서 주문한 경우 해당 상품 삭제
+    if (isCartPurchase) {
+      await ShoppingCart.destroy({
+        where: { 
+          userid: user.userid,
+          wearidx: wearidx
+        },
+        transaction: t
+      });
+    }
+
+    await t.commit();
+    
+    res.status(201).json({
+      message: '주문이 완료되었습니다.',
+      orderNumber: orderNumber,
+      purchase: purchase
+    });
+
+  } catch (error) {
+    await t.rollback();
+    console.error('구매 처리 실패:', error);
+    res.status(500).json({ message: '주문 처리 중 오류가 발생했습니다.' });
+  }
+});
+
+// 장바구니 전체 비우기 API 추가
+app.delete('/api/shopping-cart/all', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    // 상품 존재 여부 확인 (선택적)
-    const wear = await Wear.findByPk(wearidx);
-    if (!wear) {
-      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
-    }
-
-    const cartItem = await ShoppingCart.create({
-      userid: user.userid, // user.userid는 이메일 주소입니다.
-      wearidx,
-      w_code,
-      w_gender,
-      quantity
+    await ShoppingCart.destroy({
+      where: { userid: user.userid }
     });
 
-    console.log('Cart item created:', cartItem);
-
-    res.status(201).json({ message: '상품이 장바구니에 추가되었습니다.', cartItem });
+    res.json({ message: '장바구니가 비워졌습니다.' });
   } catch (error) {
-    console.error('장바구니 추가 실패:', error);
-    res.status(500).json({ message: '서버 오류', error: error.message });
+    console.error('장바구니 비우기 실패:', error);
+    res.status(500).json({ message: '장바구니 비우기 중 오류가 발생했습니다.' });
   }
 });
 
@@ -332,7 +539,7 @@ app.get('/api/shopping-cart', authenticateToken, async (req, res) => {
 
     const cartItems = await ShoppingCart.findAll({
       where: { userid: userEmail },
-      attributes: ['cart_idx', 'userid', 'wearidx', 'w_code', 'w_gender', 'quantity', 'added_date']
+      attributes: ['cart_idx', 'userid', 'wearidx', 'w_code', 'w_gender', 'quantity', 'added_date', 'size']
     });
 
     console.log('Cart items found:', cartItems);
@@ -500,7 +707,7 @@ app.get('/api/products/:productCode', async (req, res) => {
       where: { w_code: productCode },
       attributes: [
         'wearidx', 'w_code', 'w_name', 'w_price', 'w_path', 
-        'w_brand', 'w_gender', 'w_category', 'w_size', 'w_stock'
+        'w_brand', 'w_gender', 'w_category', 'w_size', 'w_stock', 'size'
       ]
     });
 

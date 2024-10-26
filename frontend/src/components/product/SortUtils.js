@@ -2,6 +2,7 @@ export const sortProducts = (products, sortOption) => {
     return [...products].sort((a, b) => {
       switch (sortOption) {
         case 'latest':
+          if (!a.w_date || !b.w_date) return 0;
           return new Date(b.wDate) - new Date(a.wDate);
         case 'popular':
           return b.w_volume - a.w_volume;
