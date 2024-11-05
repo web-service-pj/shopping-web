@@ -21,7 +21,8 @@ dotenv.config();
 app.use(cors({
   origin: 'http://localhost:3000', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Total-Count', 'Range'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
   credentials: true 
 }));
 
