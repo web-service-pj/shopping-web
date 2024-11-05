@@ -963,22 +963,20 @@ app.get('/api/purchases/:orderNumber', authenticateToken, async (req, res) => {
 
 app.get('/api/wears', async (req, res) => {
   try {
-    const { _sort = 'wearidx', _order = 'ASC', _start = 0, _end = 25 } = req.query;
-    const limit = parseInt(_end) - parseInt(_start);
-    const offset = parseInt(_start);
+    const { _sort = 'wearidx', _order = 'ASC' } = req.query;
 
-    const { count, rows: wears } = await Wear.findAndCountAll({
-      order: [[_sort, _order]],
-      offset: offset,
-      limit: limit,
+    const wears = await Wear.findAll({
+      order: [[_sort, _order]]
     });
 
     const mappedWears = wears.map(wear => ({
-      id: wear.wearidx,  // wearidx를 id로 매핑
+      id: wear.wearidx,
       ...wear.toJSON()
     }));
 
-    res.set('Content-Range', `wears ${_start}-${Math.min(parseInt(_end), count)}/${count}`);
+    const count = wears.length;
+    
+    res.set('Content-Range', `wears 0-${count}/${count}`);
     res.set('X-Total-Count', count.toString());
     res.json(mappedWears);
   } catch (error) {
@@ -1049,22 +1047,20 @@ app.delete('/api/wears/:id', async (req, res) => {
 // User CRUD operations
 app.get('/api/users', async (req, res) => {
   try {
-    const { _sort = 'useridx', _order = 'ASC', _start = 0, _end = 25 } = req.query;
-    const limit = parseInt(_end) - parseInt(_start);
-    const offset = parseInt(_start);
+    const { _sort = 'useridx', _order = 'ASC' } = req.query;
 
-    const { count, rows: users } = await User.findAndCountAll({
-      order: [[_sort, _order]],
-      offset: offset,
-      limit: limit,
+    const users = await User.findAll({
+      order: [[_sort, _order]]
     });
 
     const mappedUsers = users.map(user => ({
-      id: user.useridx,  // useridx를 id로 매핑
+      id: user.useridx,
       ...user.toJSON()
     }));
 
-    res.set('Content-Range', `users ${_start}-${Math.min(parseInt(_end), count)}/${count}`);
+    const count = users.length;
+
+    res.set('Content-Range', `users 0-${count}/${count}`);
     res.set('X-Total-Count', count.toString());
     res.json(mappedUsers);
   } catch (error) {

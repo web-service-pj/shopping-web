@@ -5,13 +5,10 @@ import {
   Show, SimpleShowLayout, Pagination
 } from 'react-admin';
 
-const UserPagination = props => <Pagination rowsPerPageOptions={[10, 25, 50, 100]} {...props} />;
-
 export const UserList = (props) => (
   <List 
     {...props}
-    pagination={<UserPagination />}
-    perPage={25}
+    pagination={false}
     sort={{ field: 'id', order: 'ASC' }}
   >
     <Datagrid>

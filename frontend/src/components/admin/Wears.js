@@ -5,13 +5,10 @@ import {
   Show, SimpleShowLayout, Pagination
 } from 'react-admin';
 
-const WearPagination = props => <Pagination rowsPerPageOptions={[10, 25, 50, 100]} {...props} />;
-
 export const WearList = (props) => (
   <List 
     {...props}
-    pagination={<WearPagination />}
-    perPage={25}
+    pagination={false}
     sort={{ field: 'id', order: 'ASC' }}
   >
     <Datagrid>
@@ -26,7 +23,6 @@ export const WearList = (props) => (
     </Datagrid>
   </List>
 );
-  
 
 export const WearEdit = (props) => (
   <Edit {...props}>
