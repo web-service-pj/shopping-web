@@ -94,17 +94,22 @@ const LoginForm = () => {
           </div>
         </div>
         <div className="space-y-8"> 
-        <div className="space-y-1"> 
-          <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
-            로그인
-          </button> 
-          <KakaoLogin />
+          <div className="space-y-1"> 
+            <button type="submit" className="w-full bg-gray-900 text-white py-3 rounded">
+              로그인
+            </button> 
           </div>
-          <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
-            회원가입
-          </button>
-          </div>
+        </div>
       </form>
+      <div className="space-y-1">
+        <KakaoLogin />
+      </div>
+      <br></br>
+      <div className="space-y-8"> 
+        <button type="button" className="w-full border border-gray-900 text-gray-900 py-3 rounded" onClick={handleSignUp}>
+          회원가입
+        </button>
+      </div>
       
       <div className="mt-6 text-center text-sm">
         <p>신규회원 가입하고 <span className="text-red-500 underline">5% 할인 쿠폰</span> 받아보세요.</p>
