@@ -12,17 +12,17 @@ const { Sequelize } = require('sequelize');
 const xss = require('xss-clean');
 const cors = require('cors');
 const app = express();
-const PORT = 3005;
+const PORT = 5000;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 
 dotenv.config();
 
 app.use(cors({
-  origin: 'http://localhost:3001', 
+  origin: ['http://localhost:3000', 'http://trendcore.store:10052'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Total-Count', 'Range'],
-  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Range'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count', 'Access-Control-Expose-Headers'],
   credentials: true 
 }));
 
@@ -1124,6 +1124,91 @@ app.delete('/api/users/:id', async (req, res) => {
       res.status(404).json({ error: 'User not found' });
     }
   } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 구매 목록 API
+// 관리자용 구매 목록 API
+// Purchase List CRUD operations
+app.get('/api/buy', async (req, res) => {
+  try {
+    const { _sort = 'purchase_idx', _order = 'ASC' } = req.query;
+
+    const purchases = await PurchaseList.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'userid']
+        },
+        {
+          model: Wear,
+          attributes: ['w_name', 'w_brand', 'w_price']
+        }
+      ],
+      order: [[_sort, _order]]
+    });
+
+    const mappedPurchases = purchases.map(purchase => ({
+      id: purchase.purchase_idx,
+      ...purchase.toJSON(),
+      username: purchase.User.username,
+      user_email: purchase.User.userid,
+      product_name: purchase.Wear.w_name,
+      product_brand: purchase.Wear.w_brand,
+      product_price: purchase.Wear.w_price
+    }));
+
+    const count = purchases.length;
+    
+    res.set('Content-Range', `purchases 0-${count}/${count}`);
+    res.set('X-Total-Count', count.toString());
+    res.json(mappedPurchases);
+  } catch (error) {
+    console.error('Error fetching purchases:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/buy/:id', async (req, res) => {
+  try {
+    const purchase = await PurchaseList.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'userid']
+        },
+        {
+          model: Wear,
+          attributes: ['w_name', 'w_brand', 'w_price']
+        }
+      ]
+    });
+    
+    if (purchase) {
+      res.json({
+        id: purchase.purchase_idx,
+        ...purchase.toJSON(),
+        username: purchase.User.username,
+        user_email: purchase.User.userid,
+        product_name: purchase.Wear.w_name,
+        product_brand: purchase.Wear.w_brand,
+        product_price: purchase.Wear.w_price
+      });
+    } else {
+      res.status(404).json({ error: 'Purchase not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/test-purchases', async (req, res) => {
+  try {
+    const purchases = await PurchaseList.findAll();
+    res.json(purchases);
+  } catch (error) {
+    console.error('Test error:', error);
     res.status(500).json({ error: error.message });
   }
 });
