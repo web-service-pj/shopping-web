@@ -21,7 +21,8 @@ dotenv.config();
 app.use(cors({
   origin: 'http://113.198.66.75:10052', 
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Total-Count', 'Range'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count'],
   credentials: true 
 }));
 
@@ -960,3 +961,169 @@ app.get('/api/purchases/:orderNumber', authenticateToken, async (req, res) => {
   }
 });
 
+app.get('/api/wears', async (req, res) => {
+  try {
+    const { _sort = 'wearidx', _order = 'ASC' } = req.query;
+
+    const wears = await Wear.findAll({
+      order: [[_sort, _order]]
+    });
+
+    const mappedWears = wears.map(wear => ({
+      id: wear.wearidx,
+      ...wear.toJSON()
+    }));
+
+    const count = wears.length;
+    
+    res.set('Content-Range', `wears 0-${count}/${count}`);
+    res.set('X-Total-Count', count.toString());
+    res.json(mappedWears);
+  } catch (error) {
+    console.error('Error fetching wears:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/wears/:id', async (req, res) => {
+  try {
+    const wear = await Wear.findByPk(req.params.id);
+    if (wear) {
+      res.json({
+        id: wear.wearidx,
+        ...wear.toJSON()
+      });
+    } else {
+      res.status(404).json({ error: 'Wear not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/wears', async (req, res) => {
+  try {
+    const wear = await Wear.create(req.body);
+    res.status(201).json({
+      id: wear.wearidx,
+      ...wear.toJSON()
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/wears/:id', async (req, res) => {
+  try {
+    const wear = await Wear.findByPk(req.params.id);
+    if (wear) {
+      await wear.update(req.body);
+      res.json({
+        id: wear.wearidx,
+        ...wear.toJSON()
+      });
+    } else {
+      res.status(404).json({ error: 'Wear not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/wears/:id', async (req, res) => {
+  try {
+    const wear = await Wear.findByPk(req.params.id);
+    if (wear) {
+      await wear.destroy();
+      res.json({ message: 'Wear deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'Wear not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// User CRUD operations
+app.get('/api/users', async (req, res) => {
+  try {
+    const { _sort = 'useridx', _order = 'ASC' } = req.query;
+
+    const users = await User.findAll({
+      order: [[_sort, _order]]
+    });
+
+    const mappedUsers = users.map(user => ({
+      id: user.useridx,
+      ...user.toJSON()
+    }));
+
+    const count = users.length;
+
+    res.set('Content-Range', `users 0-${count}/${count}`);
+    res.set('X-Total-Count', count.toString());
+    res.json(mappedUsers);
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (user) {
+      res.json({
+        id: user.useridx,
+        ...user.toJSON()
+      });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/users', async (req, res) => {
+  try {
+    const user = await User.create(req.body);
+    res.status(201).json({
+      id: user.useridx,
+      ...user.toJSON()
+    });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.put('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (user) {
+      await user.update(req.body);
+      res.json({
+        id: user.useridx,
+        ...user.toJSON()
+      });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+
+app.delete('/api/users/:id', async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id);
+    if (user) {
+      await user.destroy();
+      res.json({ message: 'User deleted successfully' });
+    } else {
+      res.status(404).json({ error: 'User not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
