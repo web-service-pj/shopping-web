@@ -6,7 +6,7 @@ import Dashboard from '../components/admin/Dashboard';
 import customDataProvider from '../utils/dataProvider';
 
 const AdminPage = () => (
-    <Admin basename="/admin" dashboard={Dashboard} dataProvider={customDataProvider}>
+    <Admin basename="" dashboard={Dashboard} dataProvider={customDataProvider}>
     <Resource name="wears" list={WearList} edit={WearEdit} create={WearCreate} show={WearShow} />
     <Resource name="users" list={UserList} edit={UserEdit} show={UserShow} />
   </Admin>
