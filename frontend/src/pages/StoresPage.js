@@ -5,7 +5,7 @@ import Footer from '../components/common/footer';
 const StoreList = ({ stores, onStoreSelect }) => (
   <div style={{width: 384, height: '100%', overflowY: 'auto', borderRight: '1px solid #F3F4F6'}}>
     <div style={{background: '#2F312F', color: 'white', padding: '15px 10px', fontSize: 14, fontWeight: 200}}>
-      웍스아웃 스토어
+      TRENDCORE STORE
     </div>
     {stores.map((store, index) => (
       <div key={index} 
@@ -68,7 +68,7 @@ const MapView = ({ stores, selectedStore }) => {
   return (
     <div style={{flex: 1, position: 'relative'}}>
       <div style={{position: 'absolute', top: 0, left: 0, right: 0, height: 59, background: '#2E312F', color: 'white', padding: '15px 20px', display: 'flex', alignItems: 'center'}}>
-        <span style={{fontSize: 16, fontWeight: 500}}>WORKSOUT</span>
+        <span style={{fontSize: 16, fontWeight: 500}}>TREND CORE</span>
       </div>
       <div ref={mapRef} style={{height: '100%'}}></div>
     </div>
