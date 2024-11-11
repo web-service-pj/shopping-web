@@ -1,8 +1,10 @@
+// src/pages/MyPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import axios from 'axios';
+import Modal from '../components/common/Modal';
 
 const api = axios.create({
   baseURL: 'http://localhost:3005',
@@ -40,6 +42,13 @@ const MyPage = () => {
   });
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isChargeModalOpen, setIsChargeModalOpen] = useState(false);
+  const [chargeStep, setChargeStep] = useState(1);
+  const [email, setEmail] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [chargeAmount, setChargeAmount] = useState('');
+  const [modalLoading, setModalLoading] = useState(false);
+  const [modalError, setModalError] = useState('');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -88,6 +97,158 @@ const MyPage = () => {
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  // 이메일 인증 요청
+  const handleSendVerification = async () => {
+    try {
+      setModalLoading(true);
+      setModalError('');
+      await api.post('/api/verification/send', { email });
+      setChargeStep(2);
+    } catch (error) {
+      setModalError('인증 이메일 전송에 실패했습니다.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // 인증번호 확인
+  const handleVerifyCode = async () => {
+    try {
+      setModalLoading(true);
+      setModalError('');
+      await api.post('/api/verification/verify', {
+        email,
+        code: verificationCode
+      });
+      setChargeStep(3);
+    } catch (error) {
+      setModalError('잘못된 인증번호입니다.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // 포인트 충전
+  const handleChargePoints = async () => {
+    try {
+      setModalLoading(true);
+      setModalError('');
+      await api.post('/api/points/charge', {
+        amount: parseInt(chargeAmount),
+        email
+      });
+      
+      // 사용자 정보 다시 불러오기
+      const userResponse = await api.get('/api/user');
+      setUserInfo(prev => ({
+        ...prev,
+        points: userResponse.data.points || 0
+      }));
+
+      // 모달 초기화 및 닫기
+      setChargeStep(1);
+      setEmail('');
+      setVerificationCode('');
+      setChargeAmount('');
+      setIsChargeModalOpen(false);
+    } catch (error) {
+      setModalError('포인트 충전에 실패했습니다.');
+    } finally {
+      setModalLoading(false);
+    }
+  };
+
+  // 모달 닫기
+  const handleCloseModal = () => {
+    setIsChargeModalOpen(false);
+    setChargeStep(1);
+    setEmail('');
+    setVerificationCode('');
+    setChargeAmount('');
+    setModalError('');
+  };
+
+  const renderChargeModalContent = () => {
+    switch (chargeStep) {
+      case 1:
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                이메일
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="이메일을 입력하세요"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <button
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
+              onClick={handleSendVerification}
+              disabled={!email || modalLoading}
+            >
+              {modalLoading ? '처리중...' : '인증번호 받기'}
+            </button>
+          </div>
+        );
+
+      case 2:
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                인증번호
+              </label>
+              <input
+                type="text"
+                value={verificationCode}
+                onChange={(e) => setVerificationCode(e.target.value)}
+                placeholder="인증번호를 입력하세요"
+                className="w-full px-3 py-2 border rounded-md"
+              />
+            </div>
+            <button
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
+              onClick={handleVerifyCode}
+              disabled={!verificationCode || modalLoading}
+            >
+              {modalLoading ? '확인중...' : '인증번호 확인'}
+            </button>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                충전 금액
+              </label>
+              <input
+                type="number"
+                value={chargeAmount}
+                onChange={(e) => setChargeAmount(e.target.value)}
+                placeholder="충전할 금액을 입력하세요"
+                className="w-full px-3 py-2 border rounded-md"
+                min="1000"
+                step="1000"
+              />
+            </div>
+            <button
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
+              onClick={handleChargePoints}
+              disabled={!chargeAmount || modalLoading}
+            >
+              {modalLoading ? '충전중...' : '충전하기'}
+            </button>
+          </div>
+        );
+    }
   };
 
   const OrderItem = ({ order }) => {
@@ -168,19 +329,25 @@ const MyPage = () => {
             </div>
             <div className="px-8 py-6">
               <div className="text-gray-500 text-sm mb-2">회원 등급</div>
-              <div className="text-lg font-bold">BASIC</div>
+              <div className="text-lg font-bold">{userInfo.membership}</div>
             </div>
             <div className="px-8 py-6">
               <div className="text-gray-500 text-sm mb-2">포인트</div>
-              <div className="text-lg">
-                <span className="font-bold">0</span>원
+              <div className="text-lg flex items-center gap-2">
+                <span className="font-bold">{userInfo.points.toLocaleString()}</span>원
+                <button
+                  onClick={() => setIsChargeModalOpen(true)}
+                  className="text-sm px-2 py-1 bg-black text-white rounded hover:bg-gray-800"
+                >
+                  충전
+                </button>
               </div>
             </div>
             <div className="px-8 py-6 flex justify-between items-start">
               <div>
                 <div className="text-gray-500 text-sm mb-2">쿠폰</div>
                 <div className="text-lg">
-                  <span className="font-bold">0</span>개
+                  <span className="font-bold">{userInfo.coupons}</span>개
                 </div>
               </div>
               <button className="text-black text-sm">
@@ -226,7 +393,7 @@ const MyPage = () => {
           </aside>
 
           <main className="flex-1">
-            <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
+          <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
             <h3 className="text-lg mb-4">최근 주문 내역</h3>
 
             <div className="mb-4 flex gap-2">
@@ -299,6 +466,35 @@ const MyPage = () => {
           </main>
         </div>
       </div>
+
+      {/* 포인트 충전 모달 */}
+      {isChargeModalOpen && (
+        <Modal
+          isOpen={isChargeModalOpen}
+          onClose={handleCloseModal}
+          title={
+            chargeStep === 1 ? '포인트 충전 - 이메일 인증' :
+            chargeStep === 2 ? '포인트 충전 - 인증번호 확인' :
+            '포인트 충전 - 금액 입력'
+          }
+        >
+          <div>
+            {renderChargeModalContent()}
+            {modalError && (
+              <p className="text-red-500 text-sm mt-2">{modalError}</p>
+            )}
+            <div className="mt-4 pt-4 border-t flex justify-end">
+              <button
+                onClick={handleCloseModal}
+                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+              >
+                취소
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+      
       <Footer />
     </div>
   );
