@@ -19,7 +19,11 @@ const crypto = require('crypto');
 dotenv.config();
 
 app.use(cors({
-  origin: 'http://113.198.66.75:10052', 
+  origin: [
+    'https://www.trendcore.store:8080',
+    'https://www.trendcore.store',
+    'http://113.198.66.75:10052'  
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Total-Count', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count'],
