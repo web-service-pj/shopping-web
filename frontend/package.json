@@ -2,7 +2,7 @@
   "name": "web-service",
   "version": "0.1.0",
   "private": true,
-  "homepage": "https://www.trendcore.store",
+  "homepage": "/",
   "dependencies": {
     "@testing-library/jest-dom": "^5.17.0",
     "@testing-library/react": "^13.4.0",
@@ -25,7 +25,7 @@
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "GENERATE_SOURCEMAP=false react-scripts build",
+    "build": "DISABLE_ESLINT_PLUGIN=true GENERATE_SOURCEMAP=false react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
@@ -33,7 +33,10 @@
     "extends": [
       "react-app",
       "react-app/jest"
-    ]
+    ],
+    "rules": {
+      "react/jsx-no-target-blank": "off"
+    }
   },
   "browserslist": {
     "production": [
@@ -52,6 +55,5 @@
     "autoprefixer": "^10.4.20",
     "postcss": "^8.4.47",
     "tailwindcss": "^3.4.11"
-  },
-  "proxy": "http://localhost:5000"
+  }
 }
