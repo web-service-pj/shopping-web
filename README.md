@@ -112,42 +112,42 @@
 
 &nbsp;
 
-- **사용자 인증 (카카오 소셜 로그인)**
+### 사용자 인증 (카카오 소셜 로그인)
 <img src="/frontend/public/images/auth.png" alt="인증 페이지">
 
 &nbsp;
 
 &nbsp;
 
-- **상품 카테고리별 조회**
+### 상품 카테고리별 조회
 <img src="/frontend/public/images/men.png" alt="상품 페이지">
 
 &nbsp;
 
 &nbsp;
 
-- **세일 항목**
+### 세일 항목
 <img src="/frontend/public/images/sale.png" alt="세일 페이지">
 
 &nbsp;
 
 &nbsp;
 
-- **장바구니 기능 / 주문 및 결제 프로세스**
+### 장바구니 기능 / 주문 및 결제 프로세스
 <img src="/frontend/public/images/cart.png" alt="장바구니 페이지">
 
 &nbsp;
 
 &nbsp;
 
-- **관리자 대시보드**
+### 관리자 대시보드
 <img src="/frontend/public/images/admin.png" alt="관리자 페이지">
 
 &nbsp;
 
 &nbsp;
 
-- **반응형 디자인**
+### 반응형 디자인
 <table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border: none; margin: 0; padding: 0;">
 <tr style="border: none; margin: 0; padding: 0;">
 <td width="50%" style="border: none; margin: 0; padding: 0;">
