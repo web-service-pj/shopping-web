@@ -16,7 +16,7 @@
 
 &nbsp;
 
--  **웹사이트**: [https://trendcore.store](https://trendcore.store)
+-  **웹사이트**: [https://www.trendcore.store](https://www.trendcore.store)
 
 -  **GitHub**: [https://github.com/web-service-pj/shopping-web](https://github.com/web-service-pj/shopping-web)
 
