@@ -1,11 +1,12 @@
 
 # 🕶 TrendCore - Fashion Shopping Mall
 
-&nbsp;
 
 ### &nbsp; 쿠버네티스 기반의 고가용성 패션 쇼핑몰 웹 서비스
 
-<img src="/frontend/public/images/main.png" alt="메인 페이지">
+&nbsp;
+
+<img src="/frontend/public/images/banner.jpeg" alt="메인 페이지">
 
 &nbsp;
 
@@ -13,6 +14,7 @@
 
 ## 🌐 서비스 링크
 
+&nbsp;
 
 -  **웹사이트**: [https://trendcore.store](https://trendcore.store)
 
@@ -169,7 +171,7 @@
 &nbsp;
 
 ### 전체 아키텍처
-<img src="/frontend/public/images/architecture.png" alt="전체 아키텍처">
+<img src="/frontend/public/images/archi.png" alt="전체 아키텍처">
   
  &nbsp;
 
