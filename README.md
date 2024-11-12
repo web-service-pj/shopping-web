@@ -1,7 +1,7 @@
 
 # 🕶 TrendCore - Fashion Shopping Mall
 
-  
+&nbsp;
 
 ### &nbsp; 쿠버네티스 기반의 고가용성 패션 쇼핑몰 웹 서비스
 
@@ -9,7 +9,7 @@
 
 &nbsp;
 
-  
+&nbsp;
 
 ## 🌐 서비스 링크
 
@@ -19,6 +19,8 @@
 -  **GitHub**: [https://github.com/web-service-pj/shopping-web](https://github.com/web-service-pj/shopping-web)
 
 &nbsp; 
+
+&nbsp;
  
 ## 👥 팀원 소개 
 
@@ -40,6 +42,7 @@
 
 &nbsp;
 
+&nbsp;
   
 
 ## 🚀 기술 스택
@@ -98,6 +101,7 @@
 
 &nbsp;
 
+&nbsp;
   
 
 ## 📌 주요 기능
@@ -108,8 +112,12 @@
 
 &nbsp;
 
+&nbsp;
+
 - **상품 카테고리별 조회**
 <img src="/frontend/public/images/men.png" alt="상품 페이지">
+
+&nbsp;
 
 &nbsp;
 
@@ -118,13 +126,19 @@
 
 &nbsp;
 
+&nbsp;
+
 - **장바구니 기능 / 주문 및 결제 프로세스**
 <img src="/frontend/public/images/cart.png" alt="장바구니 페이지">
 
 &nbsp;
 
+&nbsp;
+
 - **관리자 대시보드**
 <img src="/frontend/public/images/admin.png" alt="관리자 페이지">
+
+&nbsp;
 
 &nbsp;
 
@@ -143,9 +157,13 @@
 
 &nbsp;
 
+&nbsp;
+
   
 
 ## 🏗️ 시스템 아키텍처
+
+&nbsp;
 
 ### 전체 아키텍처
 <img src="/frontend/public/images/architecture.png" alt="전체 아키텍처">
@@ -159,6 +177,8 @@
 - Cloudflare를 통한 도메인 관리 및 SSL/TLS 적용
 
 - Private Cloud 기반 운영
+
+ &nbsp;
 
  &nbsp;
 
@@ -178,6 +198,8 @@
 - 사용자 트래픽 분석
 
 - 에러 로그 추적
+
+ &nbsp;
 
  &nbsp;
 
@@ -201,6 +223,8 @@
 5. ArgoCD를 통한 자동 배포
 
   
+
+&nbsp;
 
 &nbsp;
 
@@ -284,6 +308,7 @@ npm  run  dev
 
 &nbsp;
 
+&nbsp;
   
 
 ## 📁 프로젝트 구조
@@ -330,7 +355,7 @@ src/
 
 &nbsp;
 
-  
+&nbsp;
 
 ## 🔄 배포 프로세스
 
@@ -372,6 +397,7 @@ src/
 
 &nbsp;
 
+&nbsp;
   
 
 ## 📈 모니터링 및 알림
@@ -399,6 +425,7 @@ src/
 
 &nbsp;
 
+&nbsp;
   
 
 ## 📝 개발 가이드
@@ -407,13 +434,13 @@ src/
 
 ### Git 브랜치 전략
 
--  `main`: QA 브랜치
+-  `main`: QA 브랜치
 
 -  `develop`: 개발 브랜치
 
 - `prod`: 프로덕션 배포 브랜치
 
-  
+&nbsp;
 
 ### 커밋 메시지 컨벤션
 
@@ -439,6 +466,7 @@ chore: 빌드 업무 수정
 
 &nbsp;
 
+&nbsp;
   
 
 ## 🔒 보안 설정
@@ -455,6 +483,8 @@ chore: 빌드 업무 수정
 - SonarQube를 통한 보안 취약점 분석
 
   
+
+&nbsp;
 
 &nbsp;
 
