@@ -1,70 +1,465 @@
-# Getting Started with Create React App
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# 🕶 TrendCore - Fashion Shopping Mall
 
-## Available Scripts
+  
 
-In the project directory, you can run:
+### &nbsp; 쿠버네티스 기반의 고가용성 패션 쇼핑몰 웹 서비스
 
-### `npm start`
+<img src="/public/images/main.png" alt="메인 페이지">
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+&nbsp;
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+  
 
-### `npm test`
+## 🌐 서비스 링크
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
 
-### `npm run build`
+-  **웹사이트**: [https://trendcore.store](https://trendcore.store)
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+-  **GitHub**: [https://github.com/web-service-pj/shopping-web](https://github.com/web-service-pj/shopping-web)
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+&nbsp; 
+ 
+## 👥 팀원 소개 
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+**노형준**
+-   Kubernetes 클러스터 설계 및 구축
+-   CI/CD 파이프라인 구현
+-   모니터링 시스템 구축
+-   프론트엔드 개발
 
-### `npm run eject`
+&nbsp;
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+**이진규**
+-   백엔드 API 개발
+-   데이터베이스 설계 및 구현
+-   보안 시스템 구축
+-   어드민 시스템 개발
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+  
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+&nbsp;
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+  
 
-## Learn More
+## 🚀 기술 스택
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+  
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Frontend
 
-### Code Splitting
+-  **Framework**: React.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+-  **스타일링**: Tailwind CSS
 
-### Analyzing the Bundle Size
+-  **상태관리**: Redux Toolkit
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+&nbsp;  
 
-### Making a Progressive Web App
+### Backend
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+-  **Runtime**: Node.js
 
-### Advanced Configuration
+-  **Framework**: Express.js
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+-  **Database**: MySQL
 
-### Deployment
+&nbsp;  
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+### DevOps
 
-### `npm run build` fails to minify
+-  **Container**: Docker
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+-  **Orchestration**: Kubernetes
+
+-  **CI/CD**:
+
+	- Jenkins
+
+	- ArgoCD
+
+	- Harbor (Container Registry)
+
+	- SonarQube (코드 품질 분석)
+
+-  **Monitoring**:
+
+	- Grafana (메트릭 시각화)
+
+	- Prometheus (메트릭 수집)
+
+	- Loki (로그 수집)
+
+-  **DNS/CDN**: Cloudflare
+
+-  **Infrastructure**: Private Cloud , J-Cloud
+
+  
+
+&nbsp;
+
+  
+
+## 📌 주요 기능
+
+
+- **사용자 인증 (카카오 소셜 로그인)**
+<img src="/public/images/auth.png" alt="인증 페이지">
+
+&nbsp;
+
+- **상품 카테고리별 조회**
+<img src="/public/images/men.png" alt="상품 페이지">
+
+&nbsp;
+
+- **세일 항목**
+<img src="/public/images/sale.png" alt="세일 페이지">
+
+&nbsp;
+
+- **장바구니 기능 / 주문 및 결제 프로세스**
+<img src="/public/images/cart.png" alt="장바구니 페이지">
+
+&nbsp;
+
+- **관리자 대시보드**
+<img src="/public/images/admin.png" alt="관리자 페이지">
+
+&nbsp;
+
+- **반응형 디자인**
+<table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border: none; margin: 0; padding: 0;">
+<tr style="border: none; margin: 0; padding: 0;">
+<td width="50%" style="border: none; margin: 0; padding: 0;">
+<img src="/public/images/mobile1.png" width="100%" alt="모바일 화면1">
+</td>
+<td width="50%" style="border: none; margin: 0; padding: 0;">
+<img src="/public/images/mobile2.png" width="100%" alt="모바일 화면2">
+</td>
+</tr>
+</table>
+  
+
+&nbsp;
+
+  
+
+## 🏗️ 시스템 아키텍처
+
+### 전체 아키텍처
+<img src="/public/images/architecture.png" alt="전체 아키텍처">
+  
+ &nbsp;
+
+### 인프라 구성
+
+- 멀티 클러스터 쿠버네티스 환경 구축
+
+- Cloudflare를 통한 도메인 관리 및 SSL/TLS 적용
+
+- Private Cloud 기반 운영
+
+ &nbsp;
+
+### 모니터링 시스템
+<img src="/public/images/monitoring.png" alt="모니터링">
+
+- Prometheus를 통한 시스템 메트릭 수집
+
+- Loki를 활용한 중앙화된 로그 관리
+
+- Grafana 대시보드를 통한 통합 모니터링
+
+- 시스템 리소스 사용량
+
+- 애플리케이션 성능 메트릭
+
+- 사용자 트래픽 분석
+
+- 에러 로그 추적
+
+ &nbsp;
+
+### CI/CD 파이프라인
+<img src="/public/images/cicd.png" alt="파이프라인">
+
+1. GitHub에 코드 Push
+
+2. Jenkins 빌드 트리거
+
+3. SonarQube 정적 코드 분석
+
+- 코드 품질 검사
+
+- 보안 취약점 스캔
+
+- 테스트 커버리지 분석
+
+4. Harbor에 컨테이너 이미지 푸시
+
+5. ArgoCD를 통한 자동 배포
+
+  
+
+&nbsp;
+
+  
+
+## 🔧 로컬 개발 환경 설정
+
+  
+
+### 필수 요구사항
+
+- Node.js 18.0.0 이상
+
+- npm 8.0.0 이상
+
+- MySQL 8.0 이상
+
+&nbsp;  
+
+### Frontend 설치 및 실행
+
+```bash
+
+# 저장소 클론
+
+git  clone  https://github.com/web-service-pj/shopping-web.git
+
+  
+
+# frontend 디렉토리로 이동
+
+cd  shopping-web/frontend
+
+  
+
+# 의존성 설치
+
+npm  install
+
+  
+
+# 개발 서버 실행
+
+npm  start
+
+```
+
+&nbsp;  
+
+### Backend 설치 및 실행
+
+```bash
+
+# backend 디렉토리로 이동
+
+cd  ../backend
+
+  
+
+# 의존성 설치
+
+npm  install
+
+  
+
+# 환경 변수 설정
+
+cp  .env.example  .env
+
+# .env 파일 수정
+
+  
+
+# 서버 실행
+
+npm  run  dev
+
+```
+
+  
+
+&nbsp;
+
+  
+
+## 📁 프로젝트 구조
+
+  
+
+### Frontend
+
+```
+
+src/
+
+├── components/ # 리액트 컴포넌트
+
+│ ├── admin/ # 관리자 관련 컴포넌트
+
+│ ├── common/ # 공통 컴포넌트
+
+│ └── product/ # 상품 관련 컴포넌트
+
+├── pages/ # 페이지 컴포넌트
+
+└── utils/ # 유틸리티 함수
+
+```
+
+&nbsp;  
+
+### Backend
+
+```
+
+src/
+
+├── config/ # 설정 파일
+
+├── models/ # 데이터베이스 모델
+
+└── routes/ # API 라우트
+
+```
+
+  
+
+&nbsp;
+
+  
+
+## 🔄 배포 프로세스
+
+  
+
+### Kubernetes 배포 구성
+
+- 프로덕션 환경: 2개의 K8s 클러스터 운영
+
+- 로드 밸런싱 및 고가용성 보장
+
+- Cloudflare를 통한 트래픽 분산
+
+&nbsp;  
+
+### CI/CD 파이프라인 상세
+
+1. 개발자가 GitHub에 코드 푸시
+
+2. Jenkins가 자동으로 빌드 프로세스 시작
+
+3. SonarQube에서 코드 품질 분석 수행
+
+	- 코드 중복 검사
+
+	- 잠재적 버그 탐지
+
+	- 코딩 컨벤션 준수 여부 확인
+
+4. 품질 게이트 통과 시 Docker 이미지 생성
+
+5. Harbor에 이미지 푸시 및 취약점 스캔
+
+6. ArgoCD가 새 버전 감지 및 자동 배포
+
+
+
+  
+
+&nbsp;
+
+  
+
+## 📈 모니터링 및 알림
+
+  
+
+### 시스템 모니터링
+
+- Prometheus & Grafana를 통한 실시간 메트릭 모니터링
+
+- Loki를 통한 중앙화된 로그 수집 및 분석
+
+- 커스텀 대시보드를 통한 비즈니스 메트릭 추적
+
+  &nbsp;
+
+### 알림 설정
+
+- 시스템 리소스 임계치 초과 시 알림
+
+- 에러 발생 빈도 모니터링
+
+
+  
+
+&nbsp;
+
+  
+
+## 📝 개발 가이드
+
+  
+
+### Git 브랜치 전략
+
+-  `main`: QA 브랜치
+
+-  `develop`: 개발 브랜치
+
+- `prod`: 프로덕션 배포 브랜치
+
+  
+
+### 커밋 메시지 컨벤션
+
+```
+
+feat: 새로운 기능 추가
+
+fix: 버그 수정
+
+docs: 문서 수정
+
+style: 코드 포맷팅
+
+refactor: 코드 리팩토링
+
+test: 테스트 코드
+
+chore: 빌드 업무 수정
+
+```
+
+  
+
+&nbsp;
+
+  
+
+## 🔒 보안 설정
+
+
+### 인프라 보안
+
+- Private Cloud 내 격리된 환경
+
+- Cloudflare를 통한 DDoS 방어
+
+- 컨테이너 이미지 취약점 스캔
+
+- SonarQube를 통한 보안 취약점 분석
+
+  
+
+&nbsp;
+
+    
+
+## 📜 라이선스
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
