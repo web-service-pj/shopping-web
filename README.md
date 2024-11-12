@@ -5,7 +5,7 @@
 
 ### &nbsp; 쿠버네티스 기반의 고가용성 패션 쇼핑몰 웹 서비스
 
-<img src="/public/images/main.png" alt="메인 페이지">
+<img src="/frontend/public/images/main.png" alt="메인 페이지">
 
 &nbsp;
 
@@ -104,27 +104,27 @@
 
 
 - **사용자 인증 (카카오 소셜 로그인)**
-<img src="/public/images/auth.png" alt="인증 페이지">
+<img src="/frontend/public/images/auth.png" alt="인증 페이지">
 
 &nbsp;
 
 - **상품 카테고리별 조회**
-<img src="/public/images/men.png" alt="상품 페이지">
+<img src="/frontend/public/images/men.png" alt="상품 페이지">
 
 &nbsp;
 
 - **세일 항목**
-<img src="/public/images/sale.png" alt="세일 페이지">
+<img src="/frontend/public/images/sale.png" alt="세일 페이지">
 
 &nbsp;
 
 - **장바구니 기능 / 주문 및 결제 프로세스**
-<img src="/public/images/cart.png" alt="장바구니 페이지">
+<img src="/frontend/public/images/cart.png" alt="장바구니 페이지">
 
 &nbsp;
 
 - **관리자 대시보드**
-<img src="/public/images/admin.png" alt="관리자 페이지">
+<img src="/frontend/public/images/admin.png" alt="관리자 페이지">
 
 &nbsp;
 
@@ -132,10 +132,10 @@
 <table cellspacing="0" cellpadding="0" style="border-collapse: collapse; border: none; margin: 0; padding: 0;">
 <tr style="border: none; margin: 0; padding: 0;">
 <td width="50%" style="border: none; margin: 0; padding: 0;">
-<img src="/public/images/mobile1.png" width="100%" alt="모바일 화면1">
+<img src="/frontend/public/images/mobile1.png" width="100%" alt="모바일 화면1">
 </td>
 <td width="50%" style="border: none; margin: 0; padding: 0;">
-<img src="/public/images/mobile2.png" width="100%" alt="모바일 화면2">
+<img src="/frontend/public/images/mobile2.png" width="100%" alt="모바일 화면2">
 </td>
 </tr>
 </table>
@@ -148,7 +148,7 @@
 ## 🏗️ 시스템 아키텍처
 
 ### 전체 아키텍처
-<img src="/public/images/architecture.png" alt="전체 아키텍처">
+<img src="/frontend/public/images/architecture.png" alt="전체 아키텍처">
   
  &nbsp;
 
@@ -163,7 +163,7 @@
  &nbsp;
 
 ### 모니터링 시스템
-<img src="/public/images/monitoring.png" alt="모니터링">
+<img src="/frontend/public/images/monitoring.png" alt="모니터링">
 
 - Prometheus를 통한 시스템 메트릭 수집
 
@@ -182,7 +182,7 @@
  &nbsp;
 
 ### CI/CD 파이프라인
-<img src="/public/images/cicd.png" alt="파이프라인">
+<img src="/frontend/public/images/cicd.png" alt="파이프라인">
 
 1. GitHub에 코드 Push
 
