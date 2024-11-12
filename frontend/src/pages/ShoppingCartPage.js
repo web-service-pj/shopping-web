@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
@@ -28,14 +28,10 @@ const ShoppingCartPage = () => {
   const [couponCode, setCouponCode] = useState('쿠폰 선택');
   const [pointsToUse, setPointsToUse] = useState(0);
 
-  useEffect(() => {
-    fetchCartItems();
-  }, []);
-
-  const fetchCartItems = async () => {
+  const fetchCartItems = useCallback(async () => {
     try {
       console.log('Fetching cart items...');
-      const response = await api.get('/api/shopping-cart');
+      const response = await api.get('http://localhost:3005/api/shopping-cart');
       console.log('API Response:', response.data);
   
       if (response.data.length === 0) {
@@ -52,7 +48,7 @@ const ShoppingCartPage = () => {
         size: item.size || 'N/A', 
         price: item.wear ? item.wear.w_price : 0,
         quantity: item.quantity,
-        image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : '/api/placeholder/240/240',
+        image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : 'http://localhost:3005/api/placeholder/240/240',
         brand: item.wear ? item.wear.w_brand : 'Unknown Brand',
         w_code: item.w_code,
         w_gender: item.w_gender,
@@ -70,7 +66,11 @@ const ShoppingCartPage = () => {
         alert('장바구니 정보를 불러오는데 실패했습니다.');
       }
     }
-  };
+  }, [navigate]);
+
+  useEffect(() => {
+    fetchCartItems();
+  }, [fetchCartItems]);
 
   const calculateTotal = (items) => {
     const total = items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
@@ -88,7 +88,7 @@ const ShoppingCartPage = () => {
       const newQuantity = Math.max(1, item.quantity + change);
       console.log('Updating quantity for item:', id, 'to:', newQuantity);
   
-      const response = await api.put(`/api/shopping-cart/${id}`, { 
+      const response = await api.put(`http://localhost:3005/api/shopping-cart/${id}`, { 
         quantity: newQuantity 
       });
   
@@ -113,15 +113,7 @@ const ShoppingCartPage = () => {
         console.log('Updated cart items:', updatedItems);
         setCartItems(updatedItems);
         calculateTotal(updatedItems);
-      } else {
-        const updatedItems = cartItems.map(item => 
-          item.id === id ? { ...item, quantity: newQuantity } : item
-        );
-        setCartItems(updatedItems);
-        calculateTotal(updatedItems);
       }
-      
-      console.log('Successfully updated cart item quantity');
     } catch (error) {
       console.error('Failed to update quantity:', error);
       
@@ -156,7 +148,7 @@ const ShoppingCartPage = () => {
 
   const removeItem = async (id) => {
     try {
-      await api.delete(`/api/shopping-cart/${id}`);
+      await api.delete(`http://localhost:3005/api/shopping-cart/${id}`);
       const updatedItems = cartItems.filter(item => item.id !== id);
       setCartItems(updatedItems);
       calculateTotal(updatedItems);
@@ -204,11 +196,10 @@ const ShoppingCartPage = () => {
       }
     });
   };
-  
 
   const handleProductClick = async (item) => {
     try {
-      const response = await api.get(`/api/products/${item.w_code}`);
+      const response = await api.get(`http://localhost:3005/api/products/${item.w_code}`);
       if (response.data) {
         const product = {
           ...response.data,
@@ -249,66 +240,66 @@ const ShoppingCartPage = () => {
                       </tr>
                     </thead>
                     <tbody>
-                    {cartItems.map(item => (
+                      {cartItems.map(item => (
                         <tr key={item.id} className="border-b">
-                            <td className="py-4 px-4">
+                          <td className="py-4 px-4">
                             <div className="flex items-center">
-                                <div 
+                              <div 
                                 className="w-40 h-70 flex-shrink-0 overflow-hidden rounded-md border border-gray-200 mr-4 cursor-pointer"
                                 onClick={() => handleProductClick(item)}
-                                >
+                              >
                                 <img 
-                                    src={item.image} 
-                                    alt={item.name} 
-                                    className="h-full w-full object-cover object-center"
+                                  src={item.image} 
+                                  alt={item.name} 
+                                  className="h-full w-full object-cover object-center"
                                 />
-                                </div>
-                                <div>
+                              </div>
+                              <div>
                                 <h3 
-                                    className="font-semibold text-lg cursor-pointer hover:underline"
-                                    onClick={() => handleProductClick(item)}
+                                  className="font-semibold text-lg cursor-pointer hover:underline"
+                                  onClick={() => handleProductClick(item)}
                                 >
-                                    {item.name}
+                                  {item.name}
                                 </h3>
                                 <p className="text-gray-500 mt-1">브랜드: {item.brand}</p>
                                 <p className="text-gray-500">사이즈: {item.size}</p>
-                                <p className="text-gray-500">상품 코드: {item.w_code}</p> 
+                                <p className="text-gray-500">상품 코드: {item.w_code}</p>
                                 <p className="text-gray-500">단가: {item.price.toLocaleString()}원</p>
-                                </div>
+                              </div>
                             </div>
-                            </td>
-                            <td className="text-center py-4 px-4">
+                          </td>
+                          <td className="text-center py-4 px-4">
                             <div className="flex items-center justify-center">
-                                <button
+                              <button
                                 onClick={() => updateQuantity(item.id, -1)}
                                 className="px-2 py-1 border rounded-l"
-                                >
+                              >
                                 -
-                                </button>
-                                <span className="px-4 py-1 border-t border-b">
+                              </button>
+                              <span className="px-4 py-1 border-t border-b">
                                 {item.quantity}
-                                </span>
-                                <button
+                              </span>
+                              <button
                                 onClick={() => updateQuantity(item.id, 1)}
                                 className="px-2 py-1 border rounded-r"
-                                >
+                              >
                                 +
-                                </button>
+                              </button>
                             </div>
-                            </td>
-                            <td className="text-center font-semibold py-4 px-4">
+                          </td>
+                          <td className="text-center font-semibold py-4 px-4">
                             {(item.price * item.quantity).toLocaleString()}원
-                            </td>
-                            <td className="text-center py-4 px-4">
+                          </td>
+                          <td className="text-center py-4 px-4">
                             <button 
-                                onClick={() => removeItem(item.id)}
-                                className="text-red-500 hover:text-red-700"
+                              onClick={() => removeItem(item.id)}
+                              className="text-red-500 hover:text-red-700"
                             >
-                                삭제
+                              삭제
                             </button>
-                            </td>
+                          </td>
                         </tr>
-                        ))}
+                      ))}
                     </tbody>
                   </table>
                 )}

@@ -97,7 +97,7 @@ const PurchasePage = () => {
           return;
         }
 
-        const response = await axios.get('/api/current-user', {
+        const response = await axios.get('http://localhost:3005/api/current-user', {
           headers: {
             Authorization: `Bearer ${token}`
           }
@@ -197,7 +197,7 @@ const PurchasePage = () => {
           };
 
           return axios.post(
-            '/api/purchase',
+            'http://localhost:3005/api/purchase',
             purchaseData,
             {
               headers: { Authorization: `Bearer ${token}` }
@@ -236,7 +236,7 @@ const PurchasePage = () => {
         };
 
         const response = await axios.post(
-          '/api/purchase',
+          'http://localhost:3005/api/purchase',
           purchaseData,
           {
             headers: { Authorization: `Bearer ${token}` }
