@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import Modal from '../common/Modal';
 import axios from 'axios';
+
 const api = axios.create({
   baseURL: ''
 });
+
 const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
   const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
@@ -11,6 +13,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
   const [amount, setAmount] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
   const handleSendVerification = async () => {
     try {
       setLoading(true);
@@ -23,6 +26,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
+
   const handleVerifyCode = async () => {
     try {
       setLoading(true);
@@ -38,6 +42,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
+
   const handleChargePoints = async () => {
     try {
       setLoading(true);
@@ -54,6 +59,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
       setLoading(false);
     }
   };
+
   const renderStep = () => {
     switch (step) {
       case 1:
@@ -80,6 +86,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
             </button>
           </div>
         );
+
       case 2:
         return (
           <div className="space-y-4">
@@ -104,6 +111,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
             </button>
           </div>
         );
+
       case 3:
         return (
           <div className="space-y-4">
@@ -132,6 +140,7 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
         );
     }
   };
+
   return (
     <Modal
       isOpen={isOpen}
@@ -157,4 +166,5 @@ const PointChargeModal = ({ isOpen, onClose, onSuccess }) => {
     </Modal>
   );
 };
+
 export default PointChargeModal;

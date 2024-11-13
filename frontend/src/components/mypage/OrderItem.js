@@ -1,10 +1,12 @@
 import React from 'react';
+
 const OrderStatus = {
   PENDING: '배송 준비중',
   SHIPPING: '배송중',
   DELIVERED: '배송 완료',
   CANCELED: '주문 취소'
 };
+
 const getStatusBadgeColor = (status) => {
   switch (status) {
     case 'PENDING':
@@ -19,6 +21,7 @@ const getStatusBadgeColor = (status) => {
       return 'bg-gray-100 text-gray-800';
   }
 };
+
 const OrderItem = ({ order }) => {
   const imagePath = order.Wear?.w_path ? 
     order.Wear.w_path.split(',')[0].trim() : 
@@ -83,4 +86,5 @@ const OrderItem = ({ order }) => {
     </div>
   );
 };
+
 export default OrderItem;

@@ -1,4 +1,5 @@
 import React from 'react';
+
 const Sidebar = ({ onLogout }) => {
   return (
     <aside className="w-64">
@@ -10,6 +11,7 @@ const Sidebar = ({ onLogout }) => {
           <li className="hover:text-gray-900 cursor-pointer">반품 내역</li>
         </ul>
       </div>
+
       <div className="mb-8">
         <h3 className="font-medium text-lg mb-4">나의 정보</h3>
         <ul className="space-y-3 text-gray-600">
@@ -34,4 +36,5 @@ const Sidebar = ({ onLogout }) => {
     </aside>
   );
 };
+
 export default Sidebar;

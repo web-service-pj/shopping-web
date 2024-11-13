@@ -1,4 +1,4 @@
-// MyPage.jsx
+// src/pages/MyPage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
@@ -97,6 +97,7 @@ const MyPage = () => {
     navigate('/login');
   };
 
+  // 이메일 인증 요청
   const handleSendVerification = async () => {
     try {
       setModalLoading(true);
@@ -110,6 +111,7 @@ const MyPage = () => {
     }
   };
 
+  // 인증번호 확인
   const handleVerifyCode = async () => {
     try {
       setModalLoading(true);
@@ -126,6 +128,7 @@ const MyPage = () => {
     }
   };
 
+  // 포인트 충전
   const handleChargePoints = async () => {
     try {
       setModalLoading(true);
@@ -135,12 +138,14 @@ const MyPage = () => {
         email
       });
       
+      // 사용자 정보 다시 불러오기
       const userResponse = await api.get('/api/user');
       setUserInfo(prev => ({
         ...prev,
         points: userResponse.data.points || 0
       }));
 
+      // 모달 초기화 및 닫기
       setChargeStep(1);
       setEmail('');
       setVerificationCode('');
@@ -153,6 +158,7 @@ const MyPage = () => {
     }
   };
 
+  // 모달 닫기
   const handleCloseModal = () => {
     setIsChargeModalOpen(false);
     setChargeStep(1);
@@ -240,8 +246,8 @@ const MyPage = () => {
             </button>
           </div>
         );
-      default:
-        return null;
+      //default:
+        //return null;
     }
   };
 
@@ -387,7 +393,7 @@ const MyPage = () => {
           </aside>
 
           <main className="flex-1">
-            <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
+          <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
             <h3 className="text-lg mb-4">최근 주문 내역</h3>
 
             <div className="mb-4 flex gap-2">
