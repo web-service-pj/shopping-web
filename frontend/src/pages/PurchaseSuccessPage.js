@@ -35,7 +35,7 @@ const PaymentSuccessPage = ({ orderNumber }) => {
           </button>
           
           <button
-            onClick={() => navigate('/orders')}
+            onClick={() => navigate('/mypage')}
             className="w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-md hover:bg-gray-200 transition duration-300"
           >
             주문 내역 보기

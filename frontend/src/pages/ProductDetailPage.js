@@ -81,7 +81,7 @@ const ProductDetailPage = () => {
     }
   
     try {
-      const response = await api.post('/api/shopping-cart', {
+      const response = await api.post('http://localhost:3005/api/shopping-cart', {
         wearidx: product.wearidx,
         quantity: 1,
         w_code: product.w_code,

@@ -12,7 +12,7 @@ const { Sequelize } = require('sequelize');
 const xss = require('xss-clean');
 const cors = require('cors');
 const app = express();
-const PORT = 5000;
+const PORT = 3005;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 const adminAuth = require('./routes/adminAuth');
@@ -20,7 +20,7 @@ const adminAuth = require('./routes/adminAuth');
 dotenv.config();
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'http://trendcore.store:10052'],
+  origin: ['http://localhost:3001', 'http://trendcore.store:10052'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Range'],
   exposedHeaders: ['Content-Range', 'X-Total-Count', 'Access-Control-Expose-Headers'],
