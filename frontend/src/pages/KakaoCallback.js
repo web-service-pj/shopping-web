@@ -13,10 +13,10 @@ const KakaoCallback = () => {
 
       try {
         // 백엔드 요청 전 로그
-        console.log('Sending request to:', 'http://localhost:5000/api/auth/kakao');
+        console.log('Sending request to:', '/api/auth/kakao');
         
         const response = await axios.post(
-          'http://localhost:5000/api/auth/kakao', 
+          '/api/auth/kakao', 
           { code },
           {
             headers: {

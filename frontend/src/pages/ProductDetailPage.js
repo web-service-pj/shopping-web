@@ -7,7 +7,7 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '',
 });
 
 api.interceptors.request.use((config) => {
@@ -81,7 +81,7 @@ const ProductDetailPage = () => {
     }
   
     try {
-      const response = await api.post('http://localhost:3005/api/shopping-cart', {
+      const response = await api.post('/api/shopping-cart', {
         wearidx: product.wearidx,
         quantity: 1,
         w_code: product.w_code,

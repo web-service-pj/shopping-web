@@ -7,7 +7,7 @@ import axios from 'axios';
 import Modal from '../components/common/Modal';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '',
 });
 
 api.interceptors.request.use((config) => {

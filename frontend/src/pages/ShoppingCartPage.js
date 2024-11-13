@@ -5,7 +5,7 @@ import Footer from '../components/common/footer';
 import axios from 'axios';
 
 const api = axios.create({
-  baseURL: 'http://localhost:5000',
+  baseURL: '',
 });
 
 api.interceptors.request.use((config) => {
@@ -31,7 +31,7 @@ const ShoppingCartPage = () => {
   const fetchCartItems = useCallback(async () => {
     try {
       console.log('Fetching cart items...');
-      const response = await api.get('http://localhost:3005/api/shopping-cart');
+      const response = await api.get('/api/shopping-cart');
       console.log('API Response:', response.data);
   
       if (response.data.length === 0) {
@@ -48,7 +48,7 @@ const ShoppingCartPage = () => {
         size: item.size || 'N/A', 
         price: item.wear ? item.wear.w_price : 0,
         quantity: item.quantity,
-        image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : 'http://localhost:3005/api/placeholder/240/240',
+        image: item.wear && item.wear.w_path ? item.wear.w_path.split(',')[0].trim() : '/api/placeholder/240/240',
         brand: item.wear ? item.wear.w_brand : 'Unknown Brand',
         w_code: item.w_code,
         w_gender: item.w_gender,
@@ -88,7 +88,7 @@ const ShoppingCartPage = () => {
       const newQuantity = Math.max(1, item.quantity + change);
       console.log('Updating quantity for item:', id, 'to:', newQuantity);
   
-      const response = await api.put(`http://localhost:3005/api/shopping-cart/${id}`, { 
+      const response = await api.put(`/api/shopping-cart/${id}`, { 
         quantity: newQuantity 
       });
   
@@ -148,7 +148,7 @@ const ShoppingCartPage = () => {
 
   const removeItem = async (id) => {
     try {
-      await api.delete(`http://localhost:3005/api/shopping-cart/${id}`);
+      await api.delete(`/api/shopping-cart/${id}`);
       const updatedItems = cartItems.filter(item => item.id !== id);
       setCartItems(updatedItems);
       calculateTotal(updatedItems);
@@ -199,7 +199,7 @@ const ShoppingCartPage = () => {
 
   const handleProductClick = async (item) => {
     try {
-      const response = await api.get(`http://localhost:3005/api/products/${item.w_code}`);
+      const response = await api.get(`/api/products/${item.w_code}`);
       if (response.data) {
         const product = {
           ...response.data,

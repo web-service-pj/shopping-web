@@ -10,6 +10,6 @@ const httpClient = (url, options = {}) => {
   return fetchUtils.fetchJson(url, options);
 };
 
-const dataProvider = simpleRestProvider('http://localhost:5000/api', httpClient);
+const dataProvider = simpleRestProvider('/api', httpClient);
 
 export default dataProvider;
