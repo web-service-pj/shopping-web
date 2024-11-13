@@ -18,6 +18,7 @@ import MyPage from './pages/MyPage';
 import Cart from './pages/ShoppingCartPage';
 import KakaoCallback from './pages/KakaoCallback';
 import AdminPage from './pages/AdminPage';
+import PrivateAdminRoute from './components/PrivateAdminRoute';
 
 function App() {
   useEffect(() => {
@@ -47,7 +48,7 @@ function App() {
         <Route path="/purchase" element={<ProductPurchasePage />} /> 
         <Route path="/payment-success" element={<PurchaseSuccessPage />} /> 
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
-        <Route path="/admin/*" element={<AdminPage />} />
+        <Route path="/admin/*" element={<PrivateAdminRoute><AdminPage /></PrivateAdminRoute>} />
       </Routes>
     </Router>
   );

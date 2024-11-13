@@ -100,7 +100,7 @@ const SignUpPage = () => {
         setStep(2);
       } else {
         try {
-          const response = await fetch('http://localhost:3005/api/register', {
+          const response = await fetch('http://localhost:5000/api/register', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',

@@ -9,7 +9,12 @@ const KakaoLogin = () => {
 
     script.onload = () => {
       if (window.Kakao) {
-        window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+        try {
+          window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+          console.log('Kakao SDK initialized');
+        } catch (error) {
+          console.error('Kakao SDK initialization error:', error);
+        }
       }
     };
 
@@ -20,11 +25,17 @@ const KakaoLogin = () => {
 
   const handleKakaoLogin = () => {
     if (window.Kakao && window.Kakao.Auth) {
-      window.Kakao.Auth.cleanup(); // 기존 인증 정보 정리
-      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REACT_APP_KAKAO_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
-      window.location.href = KAKAO_AUTH_URL;
+      try {
+        window.Kakao.Auth.cleanup();
+        const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REACT_APP_KAKAO_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
+        window.location.href = KAKAO_AUTH_URL;
+      } catch (error) {
+        console.error('Kakao login error:', error);
+        alert('카카오 로그인 중 오류가 발생했습니다.');
+      }
     } else {
-      console.log('Kakao SDK not loaded');
+      console.error('Kakao SDK not loaded');
+      alert('카카오 로그인을 위한 준비가 되지 않았습니다. 잠시 후 다시 시도해주세요.');
     }
   };
 
