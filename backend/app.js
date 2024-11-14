@@ -15,7 +15,7 @@ const app = express();
 const PORT = 80;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
-
+const adminAuth = require('./routes/adminAuth');
 
 dotenv.config();
 
@@ -30,20 +30,6 @@ app.use(cors({
   exposedHeaders: ['Content-Range', 'X-Total-Count'],
   credentials: true 
 }));
-
-const adminAuth = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
-
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-    if (err) return res.sendStatus(403);
-    if (!decodedToken.isAdmin) return res.sendStatus(403); // 관리자 권한 확인
-    req.user = decodedToken;
-    next();
-  });
-};
 
 // body-parser 설정 (Express 4.16.0 이상에서는 내장됨)
 app.use(express.json());
@@ -1164,6 +1150,91 @@ app.delete('/api/users/:id', async (req, res) => {
     }
   } catch (error) {
     console.error('Error deleting user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// 구매 목록 API
+// 관리자용 구매 목록 API
+// Purchase List CRUD operations
+app.get('/api/buy', async (req, res) => {
+  try {
+    const { _sort = 'purchase_idx', _order = 'ASC' } = req.query;
+
+    const purchases = await PurchaseList.findAll({
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'userid']
+        },
+        {
+          model: Wear,
+          attributes: ['w_name', 'w_brand', 'w_price']
+        }
+      ],
+      order: [[_sort, _order]]
+    });
+
+    const mappedPurchases = purchases.map(purchase => ({
+      id: purchase.purchase_idx,
+      ...purchase.toJSON(),
+      username: purchase.User.username,
+      user_email: purchase.User.userid,
+      product_name: purchase.Wear.w_name,
+      product_brand: purchase.Wear.w_brand,
+      product_price: purchase.Wear.w_price
+    }));
+
+    const count = purchases.length;
+    
+    res.set('Content-Range', `purchases 0-${count}/${count}`);
+    res.set('X-Total-Count', count.toString());
+    res.json(mappedPurchases);
+  } catch (error) {
+    console.error('Error fetching purchases:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/buy/:id', async (req, res) => {
+  try {
+    const purchase = await PurchaseList.findByPk(req.params.id, {
+      include: [
+        {
+          model: User,
+          attributes: ['username', 'userid']
+        },
+        {
+          model: Wear,
+          attributes: ['w_name', 'w_brand', 'w_price']
+        }
+      ]
+    });
+    
+    if (purchase) {
+      res.json({
+        id: purchase.purchase_idx,
+        ...purchase.toJSON(),
+        username: purchase.User.username,
+        user_email: purchase.User.userid,
+        product_name: purchase.Wear.w_name,
+        product_brand: purchase.Wear.w_brand,
+        product_price: purchase.Wear.w_price
+      });
+    } else {
+      res.status(404).json({ error: 'Purchase not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.get('/api/test-purchases', async (req, res) => {
+  try {
+    const purchases = await PurchaseList.findAll();
+    res.json(purchases);
+  } catch (error) {
+    console.error('Test error:', error);
     res.status(500).json({ error: error.message });
   }
 });
