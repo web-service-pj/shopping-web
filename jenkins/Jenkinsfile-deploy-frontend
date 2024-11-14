@@ -2,11 +2,12 @@ pipeline {
     agent any
     
     environment {
-        SERVER_IP = credentials('jcloud-ip')  // Jenkins에 등록한 IP Credential ID
-        SSH_PORT = credentials('backend-server-port')    // Jenkins에 등록한 Port Credential ID.
-        DOCKER_IMAGE = "0b6fa52889bf.ngrok.app/cluster/frontend"
+        SERVER_IP = credentials('jcloud-ip')
+        SSH_PORT = credentials('backend-server-port')
+        DOCKER_IMAGE = "nohhye/frontend"  // 예: johndoe/frontend
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
         SCANNER_HOME = tool 'SonarQube Scanner'
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub') // Jenkins에 등록한 도커허브 인증 정보
     }
     
     stages {
@@ -41,13 +42,12 @@ pipeline {
             steps {
                 script {
                     docker.build("${DOCKER_IMAGE}:${DOCKER_TAG}", "-f frontend/Dockerfile ./frontend")
-                    docker.withRegistry('https://0b6fa52889bf.ngrok.app', 'harbor-hyeongjun') {
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
                         docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
                     }
                 }
             }
         }
-
     }
 
 }
