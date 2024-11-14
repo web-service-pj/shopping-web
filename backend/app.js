@@ -30,6 +30,20 @@ app.use(cors({
   credentials: true 
 }));
 
+const adminAuth = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+
+  if (!token) return res.sendStatus(401);
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
+    if (err) return res.sendStatus(403);
+    if (!decodedToken.isAdmin) return res.sendStatus(403); // 관리자 권한 확인
+    req.user = decodedToken;
+    next();
+  });
+};
+
 // body-parser 설정 (Express 4.16.0 이상에서는 내장됨)
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -45,19 +59,7 @@ app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
 });
 
-const adminAuth = (req, res, next) => {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
 
-  if (!token) return res.sendStatus(401);
-
-  jwt.verify(token, process.env.JWT_SECRET, (err, decodedToken) => {
-    if (err) return res.sendStatus(403);
-    if (!decodedToken.isAdmin) return res.sendStatus(403); // 관리자 권한 확인
-    req.user = decodedToken;
-    next();
-  });
-};
 
 // 데이터베이스 연결 테스트
 sequelize.authenticate()
