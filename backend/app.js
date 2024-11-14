@@ -36,6 +36,10 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use(xss());
 app.use('/api/auth', authRoutes);
+app.use('/api/admin/*', adminAuth);
+app.use('/api/wears', adminAuth);
+app.use('/api/users', adminAuth);
+app.use('/api/buy', adminAuth);
 
 app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
@@ -159,10 +163,10 @@ app.post('/api/login', async (req, res) => {
       console.log('비밀번호 일치');
 
       console.log('JWT 토큰 생성 시작');
-      const token = jwt.sign({ id: user.useridx }, process.env.JWT_SECRET, { expiresIn: '1h' });
+      const token = jwt.sign({ id: user.useridx, email: user.userid, isAdmin: user.isAdmin }, process.env.JWT_SECRET, { expiresIn: '1h' });
       console.log('JWT 토큰 생성 완료');
 
-      res.json({ message: '로그인 성공', token, user: { id: user.useridx, name: user.username } });
+      res.json({ message: '로그인 성공', token, user: { id: user.useridx, name: user.username, email: user.userid, isAdmin: user.isAdmin } });
       console.log('로그인 성공 응답 전송');
   } catch (error) {
       console.error('로그인 실패:', error);
@@ -1120,14 +1124,29 @@ app.put('/api/users/:id', async (req, res) => {
 
 app.delete('/api/users/:id', async (req, res) => {
   try {
-    const user = await User.findByPk(req.params.id);
-    if (user) {
-      await user.destroy();
-      res.json({ message: 'User deleted successfully' });
-    } else {
-      res.status(404).json({ error: 'User not found' });
+    const t = await sequelize.transaction();
+    try {
+      // 먼저 purchase_list에서 해당 사용자의 구매 기록을 삭제
+      await PurchaseList.destroy({
+        where: { useridx: req.params.id },
+        transaction: t
+      });
+      // 그 다음 사용자 삭제
+      const user = await User.findByPk(req.params.id);
+      if (user) {
+        await user.destroy({ transaction: t });
+        await t.commit();
+        res.json({ message: 'User deleted successfully' });
+      } else {
+        await t.rollback();
+        res.status(404).json({ error: 'User not found' });
+      }
+    } catch (error) {
+      await t.rollback();
+      throw error;
     }
   } catch (error) {
+    console.error('Error deleting user:', error);
     res.status(500).json({ error: error.message });
   }
 });

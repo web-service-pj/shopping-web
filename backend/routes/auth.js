@@ -35,19 +35,28 @@ router.post('/kakao', async (req, res) => {
         userid: kakaoUser.kakao_account.email,
         username: kakaoUser.properties.nickname,
         social_type: 'kakao',
+        usergender: 0,  // 기본값 설정
+        userphone: '',          // 빈 문자열로 기본값 설정
+        useraddress: '',
+        userregdate: new Date()
       });
     }
 
     // JWT 토큰 생성
     const token = jwt.sign(
-      { id: user.useridx, email: user.userid, loginType: 'kakao' },
+      { id: user.useridx, email: user.userid, loginType: 'kakao', isAdmin: user.isAdmin },
       process.env.JWT_SECRET,
       { expiresIn: '1h' }
     );
 
-    res.json({ token, user: { id: user.useridx, name: user.username, email: user.userid } });
+    res.json({ token, user: { id: user.useridx, name: user.username, email: user.userid, isAdmin: user.isAdmin  } });
   } catch (error) {
-    res.status(500).json({ message: '카카오 로그인 실패', error: error.message });
+    console.error('카카오 로그인 에러:', error.response?.data || error.message);
+    res.status(500).json({ 
+      message: '카카오 로그인 실패', 
+      error: error.message,
+      details: error.response?.data 
+    });
   }
 });
 

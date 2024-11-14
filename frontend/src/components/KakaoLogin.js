@@ -9,7 +9,12 @@ const KakaoLogin = () => {
 
     script.onload = () => {
       if (window.Kakao) {
-        window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+        try {
+          window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+          console.log('Kakao SDK initialized');
+        } catch (error) {
+          console.error('Kakao SDK initialization error:', error);
+        }
       }
     };
 

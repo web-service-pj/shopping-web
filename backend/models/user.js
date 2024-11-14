@@ -46,6 +46,10 @@ const User = sequelize.define('User', {
     type: DataTypes.ENUM('local', 'kakao'),
     defaultValue: 'local',
   },
+  isAdmin: {
+    type: DataTypes.BOOLEAN,
+    defaultValue: false,
+  },
 }, {
   tableName: 'shop_user',
   timestamps: false,
