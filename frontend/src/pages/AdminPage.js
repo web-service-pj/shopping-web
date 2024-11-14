@@ -1,4 +1,3 @@
-import React from 'react';
 import React, { useEffect }  from 'react';
 import { Admin, Resource } from 'react-admin';
 import { WearList, WearEdit, WearCreate, WearShow } from '../components/admin/Wears';
