@@ -16,6 +16,7 @@ const PORT = 80;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 
+
 dotenv.config();
 
 app.use(cors({

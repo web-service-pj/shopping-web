@@ -4,6 +4,7 @@ import { WearList, WearEdit, WearCreate, WearShow } from '../components/admin/We
 import { UserList, UserEdit, UserShow } from '../components/admin/Users';
 import Dashboard from '../components/admin/Dashboard';
 import customDataProvider from '../utils/dataProvider';
+import { useNavigate } from 'react-router-dom';
 
 const AdminPage = () => {
   const navigate = useNavigate();
