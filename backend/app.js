@@ -5,6 +5,7 @@ const User = require('./models/user');
 const Wear = require('./models/wear');
 const ShoppingCart = require('./models/shopping_cart');
 const PurchaseList = require('./models/purchase_list');
+const VerificationCode = require('./models/verification');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const { Op } = require('sequelize');
@@ -16,6 +17,7 @@ const PORT = 80;
 const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 const adminAuth = require('./routes/adminAuth');
+const transporter = require('./routes/mailer');
 
 dotenv.config();
 
@@ -27,7 +29,7 @@ app.use(cors({
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Total-Count', 'Range'],
-  exposedHeaders: ['Content-Range', 'X-Total-Count'],
+  exposedHeaders: ['Content-Range', 'X-Total-Count', 'Access-Control-Expose-Headers'],
   credentials: true 
 }));
 
@@ -45,8 +47,6 @@ app.use('/api/buy', adminAuth);
 app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
 });
-
-
 
 // 데이터베이스 연결 테스트
 sequelize.authenticate()
@@ -195,7 +195,7 @@ const authenticateToken = (req, res, next) => {
 app.get('/api/user', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate', 'social_type']
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate', 'social_type', 'points']
     });
 
     if (!user) {
@@ -210,7 +210,8 @@ app.get('/api/user', authenticateToken, async (req, res) => {
       phone: user.userphone,
       address: user.useraddress,
       registrationDate: user.userregdate,
-      loginType: user.social_type
+      loginType: user.social_type,
+      points: user.points || 0
     });
   } catch (error) {
     console.error('사용자 정보 조회 실패:', error);
@@ -399,6 +400,7 @@ app.post('/api/purchase', authenticateToken, async (req, res) => {
       deliveryRequest,
       totalAmount,
       usedPoint,
+      couponCode,
       isCartPurchase = false
     } = req.body;
 
@@ -444,9 +446,9 @@ app.post('/api/purchase', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
     }
 
-    if (usedPoint > 0 && user.user_point < usedPoint) {
+    if (user.points < totalAmount) {
       await t.rollback();
-      return res.status(400).json({ message: '사용 가능한 포인트가 부족합니다.' });
+      return res.status(400).json({ message: '포인트가 부족합니다.' });
     }
 
     const orderNumber = generateOrderNumber();
@@ -476,16 +478,15 @@ app.post('/api/purchase', authenticateToken, async (req, res) => {
       recipient_address: recipientAddress,
       delivery_request: deliveryRequest,
       total_amount: totalAmount,
-      used_point: usedPoint,
+      used_point: totalAmount, // totalAmount가 곧 사용한 포인트
+      coupon_code: couponCode,
       status: 'PENDING'
     }, { transaction: t });
 
     // 포인트 차감
-    if (usedPoint > 0) {
-      await user.update({
-        user_point: user.user_point - usedPoint
-      }, { transaction: t });
-    }
+    await user.update({
+      points: user.points - totalAmount // 포인트 차감
+    }, { transaction: t });
 
     // 장바구니에서 주문한 경우 해당 상품 삭제
     if (isCartPurchase) {
@@ -503,7 +504,8 @@ app.post('/api/purchase', authenticateToken, async (req, res) => {
     res.status(201).json({
       message: '주문이 완료되었습니다.',
       orderNumber: orderNumber,
-      purchase: purchase
+      purchase: purchase,
+      remainingPoints: user.points - totalAmount // 남은 포인트 정보 전달
     });
 
   } catch (error) {
@@ -737,7 +739,7 @@ app.get('/api/products/:productCode', async (req, res) => {
 app.get('/api/current-user', authenticateToken, async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id, {
-      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress']
+      attributes: ['useridx', 'userid', 'username', 'usergender', 'userphone', 'useraddress', 'userregdate', 'points']
     });
 
     if (!user) {
@@ -750,7 +752,9 @@ app.get('/api/current-user', authenticateToken, async (req, res) => {
       name: user.username,
       gender: user.usergender === 1 ? '여성' : '남성',
       phone: user.userphone,
-      address: user.useraddress
+      address: user.useraddress,
+      registrationDate: user.userregdate,
+      points: user.points
     });
   } catch (error) {
     console.error('현재 사용자 정보 조회 실패:', error);
@@ -778,153 +782,6 @@ const generateOrderNumber = () => {
 };
 
 // 구매 API
-app.post('/api/purchase', authenticateToken, async (req, res) => {
-  console.log('구매 요청 시작');
-  const t = await sequelize.transaction();
-  
-  try {
-    const { 
-      wearidx,
-      selectedSize,  // 선택한 사이즈
-      quantity = 1,
-      recipientName, 
-      recipientPhone, 
-      recipientAddress,
-      deliveryRequest,
-      totalAmount,
-      usedPoint 
-    } = req.body;
-
-    console.log('구매 요청 데이터:', {
-      wearidx,
-      selectedSize,
-      quantity,
-      recipientName,
-      recipientPhone,
-      recipientAddress,
-      totalAmount,
-      usedPoint
-    });
-
-    const useridx = req.user.id;
-
-    // 상품 재고 확인
-    const wear = await Wear.findByPk(wearidx, { transaction: t });
-    if (!wear) {
-      await t.rollback();
-      return res.status(404).json({ message: '상품을 찾을 수 없습니다.' });
-    }
-
-    // 사이즈별 재고 파싱 (세미콜론과 쉼표 모두 처리)
-    const stockBySize = {};
-    const sizeGroups = wear.w_stock.split(';');
-    
-    sizeGroups.forEach(group => {
-      const sizeEntries = group.split(',');
-      sizeEntries.forEach(entry => {
-        const [size, stock] = entry.split(':');
-        stockBySize[size] = parseInt(stock);
-      });
-    });
-
-    console.log('파싱된 재고 정보:', stockBySize);
-    
-    // 선택한 사이즈의 재고 확인
-    if (!stockBySize.hasOwnProperty(selectedSize)) {
-      await t.rollback();
-      return res.status(400).json({ message: '유효하지 않은 사이즈입니다.' });
-    }
-
-    if (stockBySize[selectedSize] < quantity) {
-      await t.rollback();
-      return res.status(400).json({ 
-        message: '선택한 사이즈의 재고가 부족합니다.',
-        available: stockBySize[selectedSize]
-      });
-    }
-
-    // 사용자 확인 및 포인트 검증
-    const user = await User.findByPk(useridx, { transaction: t });
-    if (!user) {
-      await t.rollback();
-      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
-    }
-
-    if (usedPoint > 0 && user.user_point < usedPoint) {
-      await t.rollback();
-      return res.status(400).json({ message: '사용 가능한 포인트가 부족합니다.' });
-    }
-
-    const orderNumber = generateOrderNumber();
-    console.log('생성된 주문번호:', orderNumber);
-
-    // 구매 기록 생성 (size 필드 포함)
-    const purchase = await PurchaseList.create({
-      useridx,
-      wearidx,
-      size: selectedSize,        // size 정보 저장
-      quantity,
-      order_number: orderNumber,
-      recipient_name: recipientName,
-      recipient_phone: recipientPhone,
-      recipient_address: recipientAddress,
-      delivery_request: deliveryRequest,
-      total_amount: totalAmount,
-      used_point: usedPoint,
-      status: 'PENDING'
-    }, { transaction: t });
-
-    console.log('구매 기록 생성 완료');
-
-    // 선택한 사이즈의 재고 감소
-    stockBySize[selectedSize] -= quantity;
-
-    // 원래 재고 문자열의 구조를 유지하면서 업데이트
-    const originalGroups = wear.w_stock.split(';');
-    const updatedGroups = originalGroups.map(group => {
-      return group.split(',').map(entry => {
-        const [size, _] = entry.split(':');
-        return `${size}:${stockBySize[size]}`;
-      }).join(',');
-    });
-
-    const newStockString = updatedGroups.join(';');
-    console.log('업데이트할 재고 문자열:', newStockString);
-
-    // 재고 업데이트
-    await wear.update({
-      w_stock: newStockString
-    }, { transaction: t });
-
-    console.log('재고 업데이트 완료. 새로운 재고:', newStockString);
-
-    // 포인트 차감
-    if (usedPoint > 0) {
-      await user.update({
-        user_point: user.user_point - usedPoint
-      }, { transaction: t });
-      console.log('포인트 차감 완료');
-    }
-
-    // 트랜잭션 커밋
-    await t.commit();
-    console.log('트랜잭션 커밋 완료');
-
-    res.status(201).json({
-      message: '주문이 완료되었습니다.',
-      orderNumber: orderNumber,
-      purchase: purchase
-    });
-
-  } catch (error) {
-    // 에러 발생 시 롤백
-    await t.rollback();
-    console.error('구매 처리 실패:', error);
-    res.status(500).json({ message: '주문 처리 중 오류가 발생했습니다.' });
-  }
-  console.log('구매 요청 처리 종료');
-});
-
 // 구매 내역 조회 API
 app.get('/api/purchases', authenticateToken, async (req, res) => {
   try {
@@ -1236,5 +1093,164 @@ app.get('/api/test-purchases', async (req, res) => {
   } catch (error) {
     console.error('Test error:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// 인증 코드 생성 및 이메일 전송
+app.post('/api/verification/send', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000);
+
+    await VerificationCode.create({
+      email,
+      code: verificationCode,
+      expires_at: expiresAt,
+    });
+
+    await transporter.sendMail({
+      from: process.env.EMAIL_USER,
+      to: email,
+      subject: '포인트 충전 인증번호',
+      text: `인증번호: ${verificationCode}\n이 인증번호는 10분간 유효합니다.`,
+      html: `
+        <h2>포인트 충전 인증번호</h2>
+        <p>인증번호: <strong>${verificationCode}</strong></p>
+        <p>이 인증번호는 10분간 유효합니다.</p>
+      `,
+    });
+
+    res.json({ message: '인증번호가 전송되었습니다.' });
+  } catch (error) {
+    console.error('인증번호 전송 실패:', error);
+    res.status(500).json({ message: '인증번호 전송에 실패했습니다.' });
+  }
+});
+
+// 인증번호 확인
+app.post('/api/verification/verify', async (req, res) => {
+  try {
+    const { email, code } = req.body;
+
+    const verification = await VerificationCode.findOne({
+      where: {
+        email,
+        code,
+        expires_at: { [Op.gt]: new Date() },
+        is_verified: false,
+      },
+      order: [['created_at', 'DESC']],
+    });
+
+    if (!verification) {
+      return res.status(400).json({ message: '유효하지 않거나 만료된 인증번호입니다.' });
+    }
+
+    await verification.update({ is_verified: true });
+    res.json({ message: '인증이 완료되었습니다.' });
+  } catch (error) {
+    console.error('인증 실패:', error);
+    res.status(500).json({ message: '인증에 실패했습니다.' });
+  }
+});
+
+// 포인트 충전
+app.post('/api/points/charge', async (req, res) => {
+  const t = await sequelize.transaction();
+  
+  try {
+    const { email, amount } = req.body;
+    
+    // 금액 제한 체크
+    const chargeAmount = parseInt(amount);
+    if (chargeAmount <= 0 || chargeAmount > 1000000) {
+      return res.status(400).json({ message: '충전 금액은 1원에서 100만원 사이여야 합니다.' });
+    }
+
+    console.log('Charging points:', { email, chargeAmount });
+
+    // 인증 확인
+    const verification = await VerificationCode.findOne({
+      where: {
+        email,
+        is_verified: true,
+        created_at: { [Op.gt]: new Date(Date.now() - 30 * 60 * 1000) }
+      },
+      order: [['created_at', 'DESC']],
+    });
+
+    if (!verification) {
+      return res.status(400).json({ message: '인증이 필요합니다.' });
+    }
+
+    // 사용자 찾기
+    const user = await User.findOne({ 
+      where: { userid: email },
+      transaction: t
+    });
+
+    if (!user) {
+      await t.rollback();
+      return res.status(404).json({ message: '사용자를 찾을 수 없습니다.' });
+    }
+
+    // 현재 포인트 값 확인
+    const currentPoints = user.points || 0;
+    console.log('Current points:', currentPoints);
+
+    // 포인트 업데이트
+    await User.update(
+      { points: currentPoints + chargeAmount },
+      { 
+        where: { userid: email },
+        transaction: t 
+      }
+    );
+
+    await t.commit();
+    
+    console.log('Points updated successfully:', {
+      before: currentPoints,
+      charged: chargeAmount,
+      after: currentPoints + chargeAmount
+    });
+
+    res.json({ 
+      message: '포인트가 충전되었습니다.',
+      points: currentPoints + chargeAmount 
+    });
+
+  } catch (error) {
+    await t.rollback();
+    console.error('포인트 충전 실패:', error);
+    res.status(500).json({ message: '포인트 충전에 실패했습니다.' });
+  }
+});
+
+app.get('/api/search', async (req, res) => {
+  try {
+    const { q } = req.query;
+    
+    if (!q) {
+      return res.status(400).json({ message: '검색어를 입력해주세요.' });
+    }
+
+    const products = await Wear.findAll({
+      where: {
+        w_name: {
+          [Op.like]: `%${q}%`
+        }
+      },
+      attributes: [
+        'wearidx', 'w_name', 'w_brand', 'w_price', 'w_path', 'w_code', 'w_gender'
+      ]
+    });
+
+    res.json(products);
+  } catch (error) {
+    console.error('검색 실패:', error);
+    res.status(500).json({ message: '검색 중 오류가 발생했습니다.' });
   }
 });

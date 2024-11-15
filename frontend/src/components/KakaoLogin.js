@@ -1,5 +1,8 @@
 import React, { useEffect } from 'react';
 
+const KAKAO_CLIENT_ID = 'bdefbf8f8e8a3420efdacb22f0fdc63e';
+const KAKAO_REDIRECT_URI = 'https://trendcore.store/oauth/kakao/callback';
+
 const KakaoLogin = () => {
   useEffect(() => {
     const script = document.createElement('script');
@@ -10,7 +13,7 @@ const KakaoLogin = () => {
     script.onload = () => {
       if (window.Kakao) {
         try {
-          window.Kakao.init(process.env.REACT_APP_KAKAO_CLIENT_ID);
+          window.Kakao.init(KAKAO_CLIENT_ID);
           console.log('Kakao SDK initialized');
         } catch (error) {
           console.error('Kakao SDK initialization error:', error);
@@ -26,7 +29,7 @@ const KakaoLogin = () => {
   const handleKakaoLogin = () => {
     if (window.Kakao && window.Kakao.Auth) {
       window.Kakao.Auth.cleanup(); // 기존 인증 정보 정리
-      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${process.env.REACT_APP_KAKAO_CLIENT_ID}&redirect_uri=${process.env.REACT_APP_KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
+      const KAKAO_AUTH_URL = `https://kauth.kakao.com/oauth/authorize?client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}&response_type=code&prompt=login`;
       window.location.href = KAKAO_AUTH_URL;
     } else {
       console.log('Kakao SDK not loaded');

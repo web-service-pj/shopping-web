@@ -4,6 +4,10 @@ const axios = require('axios');
 const jwt = require('jsonwebtoken');
 const User = require('../models/user');
 
+const KAKAO_CLIENT_ID = 'bdefbf8f8e8a3420efdacb22f0fdc63e';
+const KAKAO_REDIRECT_URI = 'https://trendcore.store/oauth/kakao/callback';
+const JWT_SECRET = 'xptmxmxptmxm';
+
 router.post('/kakao', async (req, res) => {
   try {
     const { code } = req.body;
@@ -32,8 +36,9 @@ router.post('/kakao', async (req, res) => {
     if (!user) {
       user = await User.create({
         kakao_id: kakaoUser.id.toString(),
-        userid: kakaoUser.kakao_account.email,
-        username: kakaoUser.properties.nickname,
+        userid: kakaoUser.kakao_account.email || `kakao_${kakaoUser.id}@kakao.com`,
+        userpw: 'KAKAO_LOGIN',  // 카카오 로그인 사용자용 기본 비밀번호 설정
+        username: kakaoUser.properties.nickname || '카카오 사용자',
         social_type: 'kakao',
         usergender: 0,  // 기본값 설정
         userphone: '',          // 빈 문자열로 기본값 설정
@@ -45,7 +50,7 @@ router.post('/kakao', async (req, res) => {
     // JWT 토큰 생성
     const token = jwt.sign(
       { id: user.useridx, email: user.userid, loginType: 'kakao', isAdmin: user.isAdmin },
-      process.env.JWT_SECRET,
+      JWT_SECRET,
       { expiresIn: '1h' }
     );
 

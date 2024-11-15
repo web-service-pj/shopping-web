@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Header = () => {
   const location = useLocation();
@@ -7,6 +8,11 @@ const Header = () => {
   const currentPath = location.pathname.split('/')[1];
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [userName, setUserName] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [showSearchResults, setShowSearchResults] = useState(false);
+  const [searchError, setSearchError] = useState(null);
+  const searchInputRef = useRef(null);
 
   const isMyPage = currentPath === 'mypage';
 
@@ -47,6 +53,40 @@ const Header = () => {
     navigate('/');
   };
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        searchInputRef.current &&
+        !searchInputRef.current.contains(event.target)
+      ) {
+        setShowSearchResults(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  const handleSearch = async () => {
+    try {
+      const response = await axios.get(`/api/search?q=${encodeURIComponent(searchTerm)}`);
+      setSearchResults(response.data);
+      setShowSearchResults(true);
+      setSearchError(null);
+    } catch (error) {
+      console.error('검색 실패:', error);
+      setSearchError('검색 중 오류가 발생했습니다. 다시 시도해 주세요.');
+    }
+  };
+
+  const handleProductClick = (product) => {
+    setSearchResults([]);
+    setShowSearchResults(false);
+    navigate(`/${product.w_gender === 0 ? 'men' : 'women'}/${product.w_code}`, { state: { product } });
+  };
+
   const isActive = (path) => currentPath === path;
 
   return (
@@ -65,11 +105,60 @@ const Header = () => {
             <img src="/logo.png" alt="Trend Core" style={{height: '50px'}} />
           </Link>
           <div style={{display: 'flex', gap: '24px', alignItems: 'center'}}>
-            <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}>
-              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M11 11L8.5 8.5M10 5.5C10 7.98528 7.98528 10 5.5 10C3.01472 10 1 7.98528 1 5.5C1 3.01472 3.01472 1 5.5 1C7.98528 1 10 3.01472 10 5.5Z" stroke="#1F2937" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              <span style={{color: '#1F2937', fontSize: 12}}>검색</span>
+            <div style={{display: 'flex', alignItems: 'center', gap: '4px', position: 'relative'}} ref={searchInputRef}>
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => {
+                  setSearchTerm(e.target.value);
+                  handleSearch();
+                }}
+                placeholder="검색어를 입력하세요"
+                style={{
+                  padding: '6px 8px',
+                  border: '1px solid #E5E7EB',
+                  borderRadius: '4px',
+                  fontSize: '12px',
+                  marginRight: '4px',
+                  width: '300px',
+                }}
+              />
+              {showSearchResults && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: '61px',
+                    left: '0',
+                    right: '0',
+                    backgroundColor: 'white',
+                    boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                    zIndex: '10',
+                    maxHeight: '300px',
+                    overflowY: 'auto',
+                    padding: '12px',
+                  }}
+                >
+                  {searchResults.length > 0 ? (
+                    searchResults.map((product) => (
+                      <div
+                        key={product.wearidx}
+                        style={{
+                          padding: '8px 12px',
+                          cursor: 'pointer',
+                          ':hover': {
+                            backgroundColor: '#f4f4f4',
+                          },
+                        }}
+                        onClick={() => navigate(`/${product.w_gender === 0 ? 'men' : 'women'}/${product.w_code}`, { state: { product } })}
+                      >
+                        <p>{product.w_name}</p>
+                      </div>
+                    ))
+                  ) : (
+                    <div style={{ padding: '8px 12px' }}>검색 결과가 없습니다.</div>
+                  )}
+                </div>
+              )}
             </div>
             <Link to="/cart" style={{color: '#1F2937', fontSize: 12}}>장바구니</Link>
             {isLoggedIn ? (

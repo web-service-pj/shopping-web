@@ -4,28 +4,38 @@ import Header from '../components/common/header';
 import Footer from '../components/common/footer';
 import axios from 'axios';
 
+const api = axios.create({
+  baseURL: '',
+  headers: {
+    'Content-Type': 'application/json'
+  }
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('token');
+  if (token) {
+    config.headers['Authorization'] = `Bearer ${token}`;
+  }
+  return config;
+}, (error) => {
+  return Promise.reject(error);
+});
+
 const PurchasePage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   
-  // location.state 체크
-  useEffect(() => {
-    if (!location.state) {
-      alert('잘못된 접근입니다.');
-      navigate('/cart');
-      return;
-    }
-  }, [location.state, navigate]);
-
-  const { products: cartProducts, isCartPurchase } = location.state || {};
-  const singleProduct = location.state?.product;
-  
-  // 유저 정보 상태
+  // 상태 관리
   const [userInfo, setUserInfo] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userPoints, setUserPoints] = useState(0);
+  const [couponCode, setCouponCode] = useState('');
+  const [discountAmount, setDiscountAmount] = useState(0);
   
-  // 배송 정보 상태
+  const { products: cartProducts, isCartPurchase } = location.state || {};
+  const singleProduct = location.state?.product;
+  
   const [deliveryInfo, setDeliveryInfo] = useState({
     name: '',
     phone1: '',
@@ -36,11 +46,16 @@ const PurchasePage = () => {
     deliveryRequest: '부재시 문앞에 보관해주세요'
   });
 
-  const [couponCode, setCouponCode] = useState('쿠폰 선택');
-  const [pointsToUse, setPointsToUse] = useState(0);
-
+  // location.state 체크
+  useEffect(() => {
+    if (!location.state) {
+      alert('잘못된 접근입니다.');
+      navigate('/cart');
+      return;
+    }
+  }, [location.state, navigate]);
   // 세일 할인 금액 계산 
-  const calculateDiscountAmount = () => {
+ const calculateDiscountAmount = () => {
     if (isCartPurchase && cartProducts) {
       return cartProducts.reduce((sum, item) => {
         if (item.isOnSale) {
@@ -69,14 +84,7 @@ const PurchasePage = () => {
   const calculateTotalPrice = () => {
     if (isCartPurchase && cartProducts) {
       return cartProducts.reduce((sum, item) => {
-        const originalPrice = item.isOnSale ?
-          (typeof item.originalPrice === 'string' ?
-            parseInt(item.originalPrice.replace(/[^0-9]/g, '')) :
-            item.originalPrice) :
-          (typeof item.price === 'string' ?
-            parseInt(item.price.replace(/[^0-9]/g, '')) :
-            item.price);
-        return sum + (originalPrice * item.quantity);
+        return sum + (item.price * item.quantity);
       }, 0);
     }
     
@@ -85,51 +93,58 @@ const PurchasePage = () => {
     }
     return 0;
   };
-  
-
+ 
+  // 쿠폰 할인 계산
+  const calculateCouponDiscount = (price, selectedCoupon) => {
+    switch (selectedCoupon) {
+      case 'SAVE10':
+        return Math.floor(price * 0.1);
+      case 'SAVE20':
+        return Math.floor(price * 0.2);
+      default:
+        return 0;
+    }
+  };
+ 
   // 유저 정보 가져오기
   useEffect(() => {
     const fetchUserInfo = async () => {
       try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-          navigate('/login');
-          return;
-        }
-
-        const response = await axios.get('/api/current-user', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        });
-
-        setUserInfo(response.data);
+        const response = await api.get('/api/current-user');
+        const userData = response.data;
+        
+        setUserInfo(userData);
+        setUserPoints(userData.points || 0);
         
         // 전화번호 파싱
-        const phoneParts = response.data.phone.split('-');
+        const phoneParts = userData.phone.split('-');
         
         // 배송 정보 초기값 설정
         setDeliveryInfo({
-          name: response.data.name,
+          name: userData.name,
           phone1: phoneParts[0] || '',
           phone2: phoneParts[1] || '',
           phone3: phoneParts[2] || '',
-          address: response.data.address,
+          address: userData.address,
           detailAddress: '',
           deliveryRequest: '부재시 문앞에 보관해주세요'
         });
-
+ 
         setLoading(false);
       } catch (error) {
         console.error('사용자 정보 조회 실패:', error);
+        if (error.response?.status === 401) {
+          navigate('/login');
+          return;
+        }
         setError('사용자 정보를 불러오는데 실패했습니다.');
         setLoading(false);
       }
     };
-
+ 
     fetchUserInfo();
   }, [navigate]);
-
+ 
   // 배송 정보 변경 핸들러
   const handleDeliveryInfoChange = (e) => {
     const { name, value } = e.target;
@@ -138,51 +153,43 @@ const PurchasePage = () => {
       [name]: value
     }));
   };
-
+ 
+  // 쿠폰 변경 핸들러
   const handleCouponChange = (e) => {
-    setCouponCode(e.target.value);
+    const selectedCoupon = e.target.value;
+    setCouponCode(selectedCoupon);
+    
+    // 세일 할인이 적용된 가격에서 쿠폰 할인을 계산
+    const priceAfterSaleDiscount = totalPrice - calculateDiscountAmount();
+    const couponDiscount = calculateCouponDiscount(priceAfterSaleDiscount, selectedCoupon);
+    setDiscountAmount(couponDiscount);
   };
-
-  const handlePointsChange = (e) => {
-    const value = parseInt(e.target.value) || 0;
-    const totalPrice = calculateTotalPrice();
-    if (value > totalPrice) {
-      alert('포인트는 상품 가격을 초과할 수 없습니다.');
-      setPointsToUse(totalPrice);
-      return;
-    }
-    setPointsToUse(value);
-  };
-
-  const applyPoints = () => {
-    const points = parseInt(pointsToUse) || 0;
-    if (points > (userInfo?.points || 0)) {
-      alert('보유한 포인트를 초과하여 사용할 수 없습니다.');
-      setPointsToUse(0);
-      return;
-    }
-  };
-
+ 
+  // 결제 처리
   const handlePurchase = async () => {
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        navigate('/login');
-        return;
-      }
-
-      // 배송 정보 유효성 검사
+      // 배송 정보 유효성 검사...
       if (!deliveryInfo.name || !deliveryInfo.phone1 || !deliveryInfo.phone2 || 
           !deliveryInfo.phone3 || !deliveryInfo.address) {
         alert('배송 정보를 모두 입력해주세요.');
         return;
       }
-
+  
+      if (userPoints < finalPrice) {
+        alert('포인트가 부족합니다.');
+        return;
+      }
+  
       const recipientPhoneNumber = `${deliveryInfo.phone1}-${deliveryInfo.phone2}-${deliveryInfo.phone3}`;
       const fullAddress = `${deliveryInfo.address} ${deliveryInfo.detailAddress}`.trim();
-
+  
       if (isCartPurchase && cartProducts) {
         const purchasePromises = cartProducts.map(item => {
+          // 각 상품의 최종 가격 계산 (쿠폰 할인 비율 적용)
+          const itemDiscountRate = discountAmount / (totalPrice - saleDiscountAmount);
+          const itemCouponDiscount = Math.floor(item.price * itemDiscountRate);
+          const itemFinalPrice = item.price - itemCouponDiscount;
+  
           const purchaseData = {
             wearidx: item.wearidx,
             selectedSize: item.selectedSize,
@@ -191,37 +198,32 @@ const PurchasePage = () => {
             recipientPhone: recipientPhoneNumber,
             recipientAddress: fullAddress,
             deliveryRequest: deliveryInfo.deliveryRequest,
-            totalAmount: item.price * item.quantity, // 이미 할인된 가격 사용
-            usedPoint: Math.floor(pointsToUse / cartProducts.length),
+            totalAmount: itemFinalPrice * item.quantity,
+            usedPoint: itemFinalPrice * item.quantity,
+            couponCode,
             isCartPurchase: true
           };
-
-          return axios.post(
-            '/api/purchase',
-            purchaseData,
-            {
-              headers: { Authorization: `Bearer ${token}` }
-            }
-          );
+  
+          return api.post('/api/purchase', purchaseData);
         });
-
+  
         const results = await Promise.all(purchasePromises);
         const orderNumbers = results
           .filter(res => res?.data?.orderNumber)
           .map(res => res.data.orderNumber);
-
+  
         if (orderNumbers.length > 0) {
           navigate('/payment-success', { 
-            state: { orderNumbers: orderNumbers }
+            state: { 
+              orderNumbers,
+              usedPoints: finalPrice,
+              remainingPoints: userPoints - finalPrice
+            }
           });
         } else {
           throw new Error('주문 번호를 받지 못했습니다.');
         }
       } else if (singleProduct) {
-        const finalPrice = singleProduct.isOnSale ? 
-          parseInt(singleProduct.price.replace(/[^0-9]/g, '')) :
-          singleProduct.w_price;
-
         const purchaseData = {
           wearidx: singleProduct.wearidx,
           selectedSize: singleProduct.selectedSize,
@@ -231,21 +233,20 @@ const PurchasePage = () => {
           recipientAddress: fullAddress,
           deliveryRequest: deliveryInfo.deliveryRequest,
           totalAmount: finalPrice,
-          usedPoint: pointsToUse,
+          usedPoint: finalPrice,
+          couponCode,
           isCartPurchase: false
         };
-
-        const response = await axios.post(
-          '/api/purchase',
-          purchaseData,
-          {
-            headers: { Authorization: `Bearer ${token}` }
-          }
-        );
-
+  
+        const response = await api.post('/api/purchase', purchaseData);
+  
         if (response.data.orderNumber) {
           navigate('/payment-success', { 
-            state: { orderNumber: response.data.orderNumber }
+            state: { 
+              orderNumber: response.data.orderNumber,
+              usedPoints: finalPrice,
+              remainingPoints: userPoints - finalPrice
+            }
           });
         } else {
           throw new Error('주문 번호를 받지 못했습니다.');
@@ -253,26 +254,9 @@ const PurchasePage = () => {
       }
     } catch (error) {
       console.error('구매 처리 실패:', error);
-      if (error.response?.data?.message) {
-        alert(error.response.data.message);
-      } else {
-        alert('주문 처리 중 오류가 발생했습니다.');
-      }
+      alert(error.response?.data?.message || '주문 처리 중 오류가 발생했습니다.');
     }
   };
-
-  if (loading) {
-    return <div>로딩 중...</div>;
-  }
-
-  if (error) {
-    return <div>{error}</div>;
-  }
-
-  const totalPrice = calculateTotalPrice();
-  const discountAmount = calculateDiscountAmount();
-  const pointsDiscount = pointsToUse;
-  const finalPrice = totalPrice - discountAmount - pointsDiscount;
 
   const renderProducts = () => {
     if (isCartPurchase && cartProducts) {
@@ -302,14 +286,15 @@ const PurchasePage = () => {
             {item.isOnSale ? (
               <div>
                 <p className="line-through text-gray-400">
-                  {typeof item.originalPrice === 'string' 
-                    ? item.originalPrice 
-                    : `${item.originalPrice.toLocaleString()}원`}
+                  {item.originalPrice.toLocaleString()}원
                 </p>
                 <p className="font-semibold text-red-500">
-                  {(typeof item.price === 'string' 
-                    ? parseInt(item.price.replace(/[^0-9]/g, '')) * item.quantity 
-                    : item.price * item.quantity).toLocaleString()}원
+                  {item.price.toLocaleString()}원
+                  {item.discountAmount > 0 && (
+                    <span className="text-sm text-blue-500 ml-2">
+                      ({(item.discountAmount / item.originalPrice * 100).toFixed(0)}% 할인)
+                    </span>
+                  )}
                 </p>
               </div>
             ) : (
@@ -361,7 +346,13 @@ const PurchasePage = () => {
       );
     }
   };
-
+ 
+  if (loading) return <div>로딩 중...</div>;
+  if (error) return <div>{error}</div>;
+ 
+  const totalPrice = calculateTotalPrice();
+  const saleDiscountAmount = calculateDiscountAmount();
+  const finalPrice = totalPrice - saleDiscountAmount - discountAmount;
   return (
     <div className="min-h-screen">
       <Header />
@@ -389,7 +380,7 @@ const PurchasePage = () => {
                 </table>
               </div>
             </div>
-
+ 
             {/* 주문자 정보 */}
             <div className="bg-white rounded-lg shadow-md mb-8">
               <div className="p-6">
@@ -430,7 +421,7 @@ const PurchasePage = () => {
                 </div>
               </div>
             </div>
-
+ 
             {/* 배송 정보 */}
             <div className="bg-white rounded-lg shadow-md mb-8">
               <div className="p-6">
@@ -521,13 +512,17 @@ const PurchasePage = () => {
               </div>
             </div>
           </div>
-
+ 
           {/* 오른쪽 섹션 - 결제 정보 */}
           <div className="lg:w-1/4">
             <div className="sticky top-4">
               <div className="bg-white rounded-lg shadow-md">
                 <div className="p-6">
                   <h2 className="text-xl font-bold mb-4">결제 정보</h2>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">내 포인트</label>
+                    <p className="text-lg font-bold">{userPoints.toLocaleString()} P</p>
+                  </div>
                   <div className="mb-4">
                     <label className="block text-sm font-medium text-gray-700 mb-2">쿠폰 적용</label>
                     <select
@@ -540,42 +535,21 @@ const PurchasePage = () => {
                       <option value="SAVE20">20% 할인 쿠폰</option>
                     </select>
                   </div>
-                  <div className="mb-4">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">포인트 사용</label>
-                    <div className="flex items-center">
-                      <input
-                        type="number"
-                        value={pointsToUse}
-                        onChange={handlePointsChange}
-                        className="w-2/3 p-2 border rounded-l-md"
-                        placeholder="사용할 포인트"
-                      />
-                      <button
-                        onClick={applyPoints}
-                        className="w-1/3 bg-gray-800 text-white p-2 rounded-r-md hover:bg-gray-700 transition duration-300"
-                      >
-                        적용
-                      </button>
-                    </div>
-                    <p className="text-sm text-gray-500 mt-1">
-                      보유 포인트: {(userInfo?.points || 0).toLocaleString()}P
-                    </p>
-                  </div>
                   <div className="border-t pt-4">
                     <div className="flex justify-between mb-2">
                       <span>상품 금액</span>
                       <span>{totalPrice.toLocaleString()} 원</span>
                     </div>
-                    {discountAmount > 0 && (
+                    {saleDiscountAmount > 0 && (
                       <div className="flex justify-between mb-2">
                         <span>세일 할인</span>
-                        <span className="text-red-500">- {discountAmount.toLocaleString()} 원</span>
+                        <span className="text-red-500">- {saleDiscountAmount.toLocaleString()} 원</span>
                       </div>
                     )}
-                    {pointsDiscount > 0 && (
+                    {discountAmount > 0 && (
                       <div className="flex justify-between mb-2">
-                        <span>포인트 할인</span>
-                        <span className="text-red-500">- {pointsDiscount.toLocaleString()} 원</span>
+                        <span>쿠폰 할인</span>
+                        <span className="text-blue-500">- {discountAmount.toLocaleString()} 원</span>
                       </div>
                     )}
                     <div className="flex justify-between mb-2">
@@ -585,15 +559,25 @@ const PurchasePage = () => {
                     <div className="flex justify-between font-bold text-xl mt-4">
                       <span>총 결제 금액</span>
                       <span className="text-red-500">
-                        {finalPrice.toLocaleString()} 원
+                        {finalPrice.toLocaleString()} P
                       </span>
                     </div>
+                    {userPoints < finalPrice ? (
+                      <div className="text-red-500 text-sm mt-2">
+                        포인트가 부족합니다. (부족 포인트: {(finalPrice - userPoints).toLocaleString()} P)
+                      </div>
+                    ) : null}
                   </div>
                   <button
                     onClick={handlePurchase}
-                    className="w-full bg-red-500 text-white py-3 px-4 rounded-md mt-6 hover:bg-red-600 transition duration-300 text-lg font-bold"
+                    disabled={userPoints < finalPrice}
+                    className={`w-full py-3 px-4 rounded-md mt-6 text-lg font-bold
+                      ${userPoints < finalPrice 
+                        ? 'bg-gray-300 text-gray-500 cursor-not-allowed' 
+                        : 'bg-red-500 text-white hover:bg-red-600 transition duration-300'
+                      }`}
                   >
-                    결제하기
+                    {userPoints < finalPrice ? '포인트 부족' : '결제하기'}
                   </button>
                   <div className="mt-4 text-sm text-gray-500">
                     <p>· 주문 내용을 확인하였으며, 정보 제공 등에 동의합니다.</p>
@@ -602,12 +586,12 @@ const PurchasePage = () => {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
         </div>
       </div>
       <Footer />
     </div>
   );
-};
-
-export default PurchasePage;
+ };
+ 
+ export default PurchasePage;

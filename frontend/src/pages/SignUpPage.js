@@ -4,53 +4,58 @@ import Footer from '../components/common/footer';
 import { useNavigate } from 'react-router-dom';
 
 const PhoneInput = ({ value, onChange }) => {
-    const [phone, setPhone] = useState({ part1: '', part2: '', part3: '' });
-  
-    useEffect(() => {
-      onChange(Object.values(phone).join('-'));
-    }, [phone, onChange]);
-  
-    const handleChange = (e, part) => {
-      const newValue = e.target.value.replace(/\D/g, '');
-      setPhone(prev => ({ ...prev, [part]: newValue }));
-  
-      if (newValue.length === (part === 'part1' ? 3 : 4)) {
-        const nextInput = e.target.nextElementSibling?.nextElementSibling;
-        if (nextInput) nextInput.focus();
-      }
-    };
-  
-    return (
-      <div className="flex items-center">
-        <input
-          type="text"
-          value={phone.part1}
-          onChange={(e) => handleChange(e, 'part1')}
-          maxLength="3"
-          className="w-20 px-3 py-2 border border-gray-300 rounded-l"
-          placeholder="010"
-        />
-        <span className="px-1">-</span>
-        <input
-          type="text"
-          value={phone.part2}
-          onChange={(e) => handleChange(e, 'part2')}
-          maxLength="4"
-          className="w-20 px-3 py-2 border border-gray-300"
-          placeholder="0000"
-        />
-        <span className="px-1">-</span>
-        <input
-          type="text"
-          value={phone.part3}
-          onChange={(e) => handleChange(e, 'part3')}
-          maxLength="4"
-          className="w-20 px-3 py-2 border border-gray-300 rounded-r"
-          placeholder="0000"
-        />
-      </div>
-    );
+  const [phone, setPhone] = useState({ 
+    part1: value.split('-')[0] || '', 
+    part2: value.split('-')[1] || '', 
+    part3: value.split('-')[2] || '' 
+  });
+
+  const handleChange = (e, part) => {
+    const newValue = e.target.value.replace(/\D/g, '');
+    const newPhone = { ...phone, [part]: newValue };
+    setPhone(newPhone);
+    
+    // phone state가 업데이트된 후에 onChange 호출
+    const fullNumber = `${newPhone.part1}-${newPhone.part2}-${newPhone.part3}`;
+    onChange(fullNumber);
+
+    if (newValue.length === (part === 'part1' ? 3 : 4)) {
+      const nextInput = e.target.nextElementSibling?.nextElementSibling;
+      if (nextInput) nextInput.focus();
+    }
   };
+
+  return (
+    <div className="flex items-center">
+      <input
+        type="text"
+        value={phone.part1}
+        onChange={(e) => handleChange(e, 'part1')}
+        maxLength="3"
+        className="w-20 px-3 py-2 border border-gray-300 rounded-l"
+        placeholder="010"
+      />
+      <span className="px-1">-</span>
+      <input
+        type="text"
+        value={phone.part2}
+        onChange={(e) => handleChange(e, 'part2')}
+        maxLength="4"
+        className="w-20 px-3 py-2 border border-gray-300"
+        placeholder="0000"
+      />
+      <span className="px-1">-</span>
+      <input
+        type="text"
+        value={phone.part3}
+        onChange={(e) => handleChange(e, 'part3')}
+        maxLength="4"
+        className="w-20 px-3 py-2 border border-gray-300 rounded-r"
+        placeholder="0000"
+      />
+    </div>
+  );
+};
   
 const SignUpPage = () => {
   const navigate = useNavigate();

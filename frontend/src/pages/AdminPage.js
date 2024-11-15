@@ -25,7 +25,7 @@ const AdminPage = () => {
     <Admin basename="/admin" dashboard={Dashboard} dataProvider={customDataProvider}>
       <Resource name="wears" options={{ label: '옷' }} list={WearList} edit={WearEdit} create={WearCreate} show={WearShow} />
       <Resource name="users" options={{ label: '사용자' }} list={UserList} edit={UserEdit} show={UserShow} />
-      <Resource name="purchases" options={{ label: '구매목록' }} list={PurchaseList} show={PurchaseShow} />
+      <Resource name="buy" options={{ label: '구매목록' }} list={PurchaseList} show={PurchaseShow} />
     </Admin>
   );
 };

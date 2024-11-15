@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Header from '../components/common/header';
 import Footer from '../components/common/footer';
-import axios from 'axios';
 import Modal from '../components/common/Modal';
+import axios from 'axios';
 
 const api = axios.create({
   baseURL: '',
+  headers: {
+    'Content-Type': 'application/json'
+  }
 });
 
 api.interceptors.request.use((config) => {
@@ -27,6 +30,7 @@ const OrderStatus = {
 };
 
 const MyPage = () => {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('온라인 스토어');
   const [userInfo, setUserInfo] = useState({
     name: '',
@@ -48,47 +52,45 @@ const MyPage = () => {
   const [chargeAmount, setChargeAmount] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
   const [modalError, setModalError] = useState('');
-  const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const userResponse = await api.get('/api/user');
-        setUserInfo({
-          ...userResponse.data,
-          membership: 'BASIC',
-          points: 0,
-          coupons: 0
-        });
+    fetchUserData();
+  }, []);
 
-        const ordersResponse = await api.get('/api/purchases');
-        setOrders(ordersResponse.data);
-      } catch (error) {
-        console.error('데이터 조회 실패:', error);
-        if (error.response?.status === 401) {
-          navigate('/login');
-        }
-      } finally {
-        setLoading(false);
+  const fetchUserData = async () => {
+    try {
+      const [userResponse, ordersResponse] = await Promise.all([
+        api.get('/api/user'),
+        api.get('/api/purchases')
+      ]);
+  
+      // points 필드가 있는지 확인하고 콘솔에 출력
+      console.log('User Response:', userResponse.data);
+      
+      setUserInfo({
+        ...userResponse.data,
+        membership: 'BASIC',
+        points: userResponse.data.points || 0,  // points 필드 명시적 할당
+        coupons: 0
+      });
+      setOrders(ordersResponse.data);
+    } catch (error) {
+      console.error('데이터 조회 실패:', error);
+      if (error.response?.status === 401) {
+        navigate('/login');
       }
-    };
-
-    fetchData();
-  }, [navigate]);
-
-  const getStatusBadgeColor = (status) => {
-    switch (status) {
-      case 'PENDING':
-        return 'bg-blue-100 text-blue-800';
-      case 'SHIPPING':
-        return 'bg-yellow-100 text-yellow-800';
-      case 'DELIVERED':
-        return 'bg-green-100 text-green-800';
-      case 'CANCELED':
-        return 'bg-red-100 text-red-800';
-      default:
-        return 'bg-gray-100 text-gray-800';
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleCloseModal = () => {
+    setIsChargeModalOpen(false);
+    setChargeStep(1);
+    setEmail('');
+    setVerificationCode('');
+    setChargeAmount('');
+    setModalError('');
   };
 
   const handleLogout = () => {
@@ -96,7 +98,6 @@ const MyPage = () => {
     navigate('/login');
   };
 
-  // 이메일 인증 요청
   const handleSendVerification = async () => {
     try {
       setModalLoading(true);
@@ -110,15 +111,11 @@ const MyPage = () => {
     }
   };
 
-  // 인증번호 확인
   const handleVerifyCode = async () => {
     try {
       setModalLoading(true);
       setModalError('');
-      await api.post('/api/verification/verify', {
-        email,
-        code: verificationCode
-      });
+      await api.post('/api/verification/verify', { email, code: verificationCode });
       setChargeStep(3);
     } catch (error) {
       setModalError('잘못된 인증번호입니다.');
@@ -127,44 +124,37 @@ const MyPage = () => {
     }
   };
 
-  // 포인트 충전
   const handleChargePoints = async () => {
     try {
       setModalLoading(true);
       setModalError('');
-      await api.post('/api/points/charge', {
-        amount: parseInt(chargeAmount),
+  
+      const amount = parseInt(chargeAmount);
+      if (isNaN(amount) || amount <= 0 || amount > 1000000) {
+        setModalError('충전 금액은 1원에서 100만원 사이여야 합니다.');
+        return;
+      }
+  
+      const response = await api.post('/api/points/charge', {
+        amount,
         email
       });
-      
-      // 사용자 정보 다시 불러오기
-      const userResponse = await api.get('/api/user');
+  
+      // 포인트 업데이트
       setUserInfo(prev => ({
         ...prev,
-        points: userResponse.data.points || 0
+        points: response.data.points
       }));
-
-      // 모달 초기화 및 닫기
-      setChargeStep(1);
-      setEmail('');
-      setVerificationCode('');
-      setChargeAmount('');
-      setIsChargeModalOpen(false);
+  
+      handleCloseModal();
+      alert('포인트 충전이 완료되었습니다.');
+  
     } catch (error) {
-      setModalError('포인트 충전에 실패했습니다.');
+      console.error('포인트 충전 에러:', error);
+      setModalError(error.response?.data?.message || '포인트 충전에 실패했습니다.');
     } finally {
       setModalLoading(false);
     }
-  };
-
-  // 모달 닫기
-  const handleCloseModal = () => {
-    setIsChargeModalOpen(false);
-    setChargeStep(1);
-    setEmail('');
-    setVerificationCode('');
-    setChargeAmount('');
-    setModalError('');
   };
 
   const renderChargeModalContent = () => {
@@ -174,26 +164,25 @@ const MyPage = () => {
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                이메일
+                이메일 주소
               </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="이메일을 입력하세요"
                 className="w-full px-3 py-2 border rounded-md"
+                placeholder="이메일을 입력하세요"
               />
             </div>
             <button
-              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
               onClick={handleSendVerification}
               disabled={!email || modalLoading}
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
             >
-              {modalLoading ? '처리중...' : '인증번호 받기'}
+              {modalLoading ? '전송중...' : '인증번호 받기'}
             </button>
           </div>
         );
-
       case 2:
         return (
           <div className="space-y-4">
@@ -205,20 +194,20 @@ const MyPage = () => {
                 type="text"
                 value={verificationCode}
                 onChange={(e) => setVerificationCode(e.target.value)}
-                placeholder="인증번호를 입력하세요"
                 className="w-full px-3 py-2 border rounded-md"
+                placeholder="인증번호 6자리를 입력하세요"
+                maxLength={6}
               />
             </div>
             <button
-              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
               onClick={handleVerifyCode}
               disabled={!verificationCode || modalLoading}
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
             >
               {modalLoading ? '확인중...' : '인증번호 확인'}
             </button>
           </div>
         );
-
       case 3:
         return (
           <div className="space-y-4">
@@ -229,24 +218,32 @@ const MyPage = () => {
               <input
                 type="number"
                 value={chargeAmount}
-                onChange={(e) => setChargeAmount(e.target.value)}
-                placeholder="충전할 금액을 입력하세요"
+                onChange={(e) => {
+                  const value = parseInt(e.target.value);
+                  if (!isNaN(value) && value <= 1000000) {
+                    setChargeAmount(e.target.value);
+                  }
+                }}
                 className="w-full px-3 py-2 border rounded-md"
-                min="1000"
-                step="1000"
+                placeholder="충전할 금액을 입력하세요 (최대 100만원)"
+                min="1"
+                max="1000000"
               />
+              <p className="text-xs text-gray-500 mt-1">
+                1원 ~ 100만원까지 충전 가능합니다.
+              </p>
             </div>
             <button
-              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
               onClick={handleChargePoints}
-              disabled={!chargeAmount || modalLoading}
+              disabled={!chargeAmount || parseInt(chargeAmount) <= 0 || parseInt(chargeAmount) > 1000000 || modalLoading}
+              className="w-full py-2 bg-black text-white rounded-md hover:bg-gray-800 disabled:bg-gray-300"
             >
               {modalLoading ? '충전중...' : '충전하기'}
             </button>
           </div>
         );
-      //default:
-        //return null;
+      default:
+        return null;
     }
   };
 
@@ -259,7 +256,9 @@ const MyPage = () => {
       <div className="border rounded-lg p-6 mb-4 bg-white">
         <div className="flex justify-between items-start mb-4">
           <div>
-            <p className="text-sm text-gray-500 mb-1">{new Date(order.purchase_date).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-500 mb-1">
+              {new Date(order.purchase_date).toLocaleDateString()}
+            </p>
             <p className="font-medium">주문번호: {order.order_number}</p>
           </div>
           <span className={`px-3 py-1 rounded-full text-sm ${getStatusBadgeColor(order.status)}`}>
@@ -316,10 +315,21 @@ const MyPage = () => {
     );
   };
 
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case 'PENDING': return 'bg-blue-100 text-blue-800';
+      case 'SHIPPING': return 'bg-yellow-100 text-yellow-800';
+      case 'DELIVERED': return 'bg-green-100 text-green-800';
+      case 'CANCELED': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   return (
     <div className="flex flex-col min-h-screen">
       <Header />
       <div className="flex-grow max-w-[1920px] mx-auto px-6 py-8 w-full">
+        {/* UserInfo Section */}
         <div className="bg-gray-50">
           <div className="grid grid-cols-4 divide-x divide-gray-200">
             <div className="px-8 py-6">
@@ -333,7 +343,9 @@ const MyPage = () => {
             <div className="px-8 py-6">
               <div className="text-gray-500 text-sm mb-2">포인트</div>
               <div className="text-lg flex items-center gap-2">
-                <span className="font-bold">{userInfo.points.toLocaleString()}</span>원
+                <span className="font-bold">
+                  {(userInfo?.points || 0).toLocaleString()}
+                </span>원
                 <button
                   onClick={() => setIsChargeModalOpen(true)}
                   className="text-sm px-2 py-1 bg-black text-white rounded hover:bg-gray-800"
@@ -357,6 +369,7 @@ const MyPage = () => {
         </div>
 
         <div className="flex gap-8 mt-8">
+          {/* Sidebar */}
           <aside className="w-64">
             <div className="mb-8">
               <h3 className="font-medium text-lg mb-4">나의 주문</h3>
@@ -380,123 +393,124 @@ const MyPage = () => {
             <div>
               <h3 className="font-medium text-lg mb-4">고객센터</h3>
               <ul className="space-y-3 text-gray-600">
-                <li className="hover:text-gray-900 cursor-pointer">자주 묻는 질문</li>
-                <li 
-                  className="hover:text-gray-900 cursor-pointer"
-                  onClick={handleLogout}
-                >
-                  로그아웃
-                </li>
-              </ul>
-            </div>
-          </aside>
+               <li className="hover:text-gray-900 cursor-pointer">자주 묻는 질문</li>
+               <li 
+                 className="hover:text-gray-900 cursor-pointer"
+                 onClick={handleLogout}
+               >
+                 로그아웃
+               </li>
+             </ul>
+           </div>
+         </aside>
 
-          <main className="flex-1">
-          <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
-            <h3 className="text-lg mb-4">최근 주문 내역</h3>
+         {/* Main Content */}
+         <main className="flex-1">
+           <h2 className="text-2xl font-medium mb-6">나의 주문</h2>
+           <h3 className="text-lg mb-4">최근 주문 내역</h3>
 
-            <div className="mb-4 flex gap-2">
-            {['온라인 스토어', '오프라인 스토어'].map((tab) => (
-                <button
-                  key={tab}
-                  className={`px-4 py-2 rounded transition-colors
-                    ${activeTab === tab 
-                      ? 'bg-black text-white' 
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    }`}
-                  onClick={() => setActiveTab(tab)}
-                >
-                  {tab}
-                </button>
-              ))}
-            </div>
+           <div className="mb-4 flex gap-2">
+             {['온라인 스토어', '오프라인 스토어'].map((tab) => (
+               <button
+                 key={tab}
+                 className={`px-4 py-2 rounded transition-colors
+                   ${activeTab === tab 
+                     ? 'bg-black text-white' 
+                     : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                   }`}
+                 onClick={() => setActiveTab(tab)}
+               >
+                 {tab}
+               </button>
+             ))}
+           </div>
 
-            {activeTab === '온라인 스토어' && (
-              <div className="space-y-4">
-                {loading ? (
-                  <div className="text-center py-8">로딩 중...</div>
-                ) : orders.length > 0 ? (
-                  orders.map((order) => (
-                    <OrderItem key={order.order_number} order={order} />
-                  ))
-                ) : (
-                  <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
-                    <p>주문 내역이 없습니다.</p>
-                  </div>
-                )}
-              </div>
-            )}
+           {activeTab === '온라인 스토어' && (
+             <div className="space-y-4">
+               {loading ? (
+                 <div className="text-center py-8">로딩 중...</div>
+               ) : orders.length > 0 ? (
+                 orders.map((order) => (
+                   <OrderItem key={order.order_number} order={order} />
+                 ))
+               ) : (
+                 <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
+                   <p>주문 내역이 없습니다.</p>
+                 </div>
+               )}
+             </div>
+           )}
 
-            {activeTab === '오프라인 스토어' && (
-              <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
-                <p>구매내역이 없습니다.</p>
-              </div>
-            )}
+           {activeTab === '오프라인 스토어' && (
+             <div className="min-h-[200px] flex items-center justify-center text-gray-500 bg-gray-50 rounded-lg">
+               <p>구매내역이 없습니다.</p>
+             </div>
+           )}
 
-            <div className="mt-12">
-              <h2 className="text-2xl font-medium mb-6">나의 정보</h2>
-              <div className="space-y-4 bg-gray-50 p-8 rounded-lg">
-                <div className="flex">
-                  <span className="w-24 text-gray-500">이메일:</span>
-                  <span>{userInfo.email || 'N/A'}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-24 text-gray-500">성별:</span>
-                  <span>{userInfo.gender || 'N/A'}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-24 text-gray-500">전화번호:</span>
-                  <span>{userInfo.phone || 'N/A'}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-24 text-gray-500">주소:</span>
-                  <span>{userInfo.address || 'N/A'}</span>
-                </div>
-                <div className="flex">
-                  <span className="w-24 text-gray-500">가입일:</span>
-                  <span>
-                    {userInfo.registrationDate 
-                      ? new Date(userInfo.registrationDate).toLocaleDateString() 
-                      : 'N/A'}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </main>
-        </div>
-      </div>
+           <div className="mt-12">
+             <h2 className="text-2xl font-medium mb-6">나의 정보</h2>
+             <div className="space-y-4 bg-gray-50 p-8 rounded-lg">
+               <div className="flex">
+                 <span className="w-24 text-gray-500">이메일:</span>
+                 <span>{userInfo.email || 'N/A'}</span>
+               </div>
+               <div className="flex">
+                 <span className="w-24 text-gray-500">성별:</span>
+                 <span>{userInfo.gender || 'N/A'}</span>
+               </div>
+               <div className="flex">
+                 <span className="w-24 text-gray-500">전화번호:</span>
+                 <span>{userInfo.phone || 'N/A'}</span>
+               </div>
+               <div className="flex">
+                 <span className="w-24 text-gray-500">주소:</span>
+                 <span>{userInfo.address || 'N/A'}</span>
+               </div>
+               <div className="flex">
+                 <span className="w-24 text-gray-500">가입일:</span>
+                 <span>
+                   {userInfo.registrationDate 
+                     ? new Date(userInfo.registrationDate).toLocaleDateString() 
+                     : 'N/A'}
+                 </span>
+               </div>
+             </div>
+           </div>
+         </main>
+       </div>
+     </div>
 
-      {/* 포인트 충전 모달 */}
-      {isChargeModalOpen && (
-        <Modal
-          isOpen={isChargeModalOpen}
-          onClose={handleCloseModal}
-          title={
-            chargeStep === 1 ? '포인트 충전 - 이메일 인증' :
-            chargeStep === 2 ? '포인트 충전 - 인증번호 확인' :
-            '포인트 충전 - 금액 입력'
-          }
-        >
-          <div>
-            {renderChargeModalContent()}
-            {modalError && (
-              <p className="text-red-500 text-sm mt-2">{modalError}</p>
-            )}
-            <div className="mt-4 pt-4 border-t flex justify-end">
-              <button
-                onClick={handleCloseModal}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
-              >
-                취소
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-      
-      <Footer />
-    </div>
-  );
+     {/* Point Charge Modal */}
+     {isChargeModalOpen && (
+       <Modal
+         isOpen={isChargeModalOpen}
+         onClose={handleCloseModal}
+         title={
+           chargeStep === 1 ? '포인트 충전 - 이메일 인증' :
+           chargeStep === 2 ? '포인트 충전 - 인증번호 확인' :
+           '포인트 충전 - 금액 입력'
+         }
+       >
+         <div>
+           {renderChargeModalContent()}
+           {modalError && (
+             <p className="text-red-500 text-sm mt-2">{modalError}</p>
+           )}
+           <div className="mt-4 pt-4 border-t flex justify-end">
+             <button
+               onClick={handleCloseModal}
+               className="px-4 py-2 text-sm text-gray-600 hover:text-gray-900"
+             >
+               취소
+             </button>
+           </div>
+         </div>
+       </Modal>
+     )}
+     
+     <Footer />
+   </div>
+ );
 };
 
 export default MyPage;

@@ -19,6 +19,12 @@ import Cart from './pages/ShoppingCartPage';
 import KakaoCallback from './pages/KakaoCallback';
 import AdminPage from './pages/AdminPage';
 import PrivateAdminRoute from './components/PrivateAdminRoute';
+import AboutPage from './pages/AboutPage';
+import SupportPage from './pages/SupportPage';
+import ContactPage from './pages/ContactPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
+import EscrowPage from './pages/EscrowPage';
 
 function App() {
   useEffect(() => {
@@ -50,6 +56,12 @@ function App() {
         <Route path="/oauth/kakao/callback" element={<KakaoCallback />} />
         <Route path="/admin/*" element={<AdminPage />} />
         <Route path="/admin/*" element={<PrivateAdminRoute><AdminPage /></PrivateAdminRoute>} />
+        <Route path="/about" element={<AboutPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        <Route path="/contact" element={<ContactPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/escrow" element={<EscrowPage />} />
       </Routes>
     </Router>
   );

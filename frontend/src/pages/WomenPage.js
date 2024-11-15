@@ -38,7 +38,7 @@ const WomenPage = () => {
 
           return {
             ...product,
-            image: product.w_path.split(',')[0].trim(),
+            image: product.w_path,
             brand: product.w_brand,
             name: product.w_name,
             originalPrice: totalStock === 0 ? '품절' : `${originalPrice.toLocaleString()}원`,

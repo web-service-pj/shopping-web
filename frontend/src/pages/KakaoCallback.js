@@ -10,7 +10,15 @@ const KakaoCallback = () => {
     const getKakaoToken = async () => {
       const code = new URLSearchParams(location.search).get('code');
       try {
-        const response = await axios.post('/api/auth/kakao', { code });
+        const response = await axios.post(
+          '/api/auth/kakao', 
+          { code },
+          {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          }
+        );
         const { token, user } = response.data;
         localStorage.setItem('token', token);
         localStorage.setItem('user', JSON.stringify(user));

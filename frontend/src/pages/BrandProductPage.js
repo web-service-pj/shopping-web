@@ -51,7 +51,7 @@ const BrandProductPage = () => {
         const data = await response.json();
         const formattedProducts = data.map(product => ({
           ...product,
-          image: product.w_path.split(',')[0].trim(),
+          image: Array.isArray(product.w_path) ? product.w_path.join(',') : product.w_path,
           brand: product.w_brand,
           name: product.w_name,
           price: `${product.w_price.toLocaleString()}원`,
