@@ -495,9 +495,36 @@ chore: 빌드 업무 수정
 
 - SonarQube를 통한 보안 취약점 분석
 
-  
-
 &nbsp;
+
+### 시큐어 코딩 적용
+
+- XSS(Cross Site Scripting) 방지
+ - xss-clean 미들웨어 사용
+ - 사용자 입력값 이스케이핑 처리
+
+- CSRF(Cross Site Request Forgery) 방지
+ - CORS 설정을 통한 허용된 도메인만 접근 가능
+ - API 요청 시 토큰 검증
+
+- SQL Injection 방지
+ - Sequelize ORM 사용
+ - Prepared Statement 적용
+
+- 인증 및 인가
+ - JWT 토큰 기반 인증
+ - 접근 권한 검증 미들웨어 구현
+ - 토큰 만료 시간 설정
+
+- 암호화
+ - 비밀번호 해싱(crypto)
+ - HTTPS 적용
+ - 민감 정보 암호화 저장
+
+- API 보안
+ - 요청 제한(Rate Limiting)
+ - API 키 인증
+ - 입력값 검증
 
 &nbsp;
 
