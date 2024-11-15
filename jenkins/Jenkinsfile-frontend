@@ -2,8 +2,8 @@ pipeline {
     agent any
     
     environment {
-        SERVER_IP = credentials('jcloud-ip')  // Jenkins에 등록한 IP Credential ID
-        SSH_PORT = credentials('jcloud-port')    // Jenkins에 등록한 Port Credential ID
+        SERVER_IP = credentials('jcloud-ip')  
+        SSH_PORT = credentials('jcloud-port')   
         DOCKER_IMAGE = "0b6fa52889bf.ngrok.app/test/frontend"
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
         SCANNER_HOME = tool 'SonarQube Scanner'
@@ -31,30 +31,30 @@ pipeline {
             }
         }
         
-        // stage('SonarQube Analysis') {
-        //     steps {
-        //         withSonarQubeEnv('SonarQube') {
-        //             sh """
-        //                 ${SCANNER_HOME}/bin/sonar-scanner \
-        //                 -Dsonar.projectKey=frontend-project \
-        //                 -Dsonar.sources=frontend/src \
-        //                 -Dsonar.exclusions=**/node_modules/**,**/*.spec.js \
-        //                 -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info \
-        //                 -Dsonar.java.binaries=/**/*.java
-        //             """
-        //         }
-        //     }
-        // }
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh """
+                        ${SCANNER_HOME}/bin/sonar-scanner \
+                        -Dsonar.projectKey=frontend-project \
+                        -Dsonar.sources=frontend/src \
+                        -Dsonar.exclusions=**/node_modules/**,**/*.spec.js \
+                        -Dsonar.javascript.lcov.reportPaths=frontend/coverage/lcov.info \
+                        -Dsonar.java.binaries=/**/*.java
+                    """
+                }
+            }
+        }
         
-        // stage('Quality Gate') {
-        //     steps {
-        //         timeout(time: 1, unit: 'HOURS') {
-        //             // 개발 단계에서 Quality Gate 통과 후 배포 중지
-        //             //waitForQualityGate abortPipeline: true
-        //             waitForQualityGate abortPipeline: false
-        //         }
-        //     }
-        // }
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'HOURS') {
+                    // 개발 단계에서 Quality Gate 통과 후 배포 중지
+                    waitForQualityGate abortPipeline: true
+                    waitForQualityGate abortPipeline: false
+                }
+            }
+        }
         
         stage('Build and Push Docker Image') {
             steps {
@@ -63,51 +63,6 @@ pipeline {
                     docker.withRegistry('https://0b6fa52889bf.ngrok.app', 'harbor-hyeongjun') {
                         docker.image("${DOCKER_IMAGE}:${DOCKER_TAG}").push()
                     }
-                }
-            }
-        }
-
-        // stage('Deploy to ssh-web-server') {
-        //     steps {
-        //         sshagent(['ssh-web-server']) {
-        //             sh """
-        //                 scp image.tar hj@192.168.64.4:~/
-        //                 ssh -o StrictHostKeyChecking=no hj@192.168.64.4 '
-        //                     set -e
-        //                     docker load < image.tar || exit 1
-        //                     docker stop frontend || true
-        //                     docker rm frontend || true
-        //                     docker run -d --name frontend -p 80:80 ${DOCKER_IMAGE}:${DOCKER_TAG} || exit 1
-        //                     echo "Deployment completed"
-        //                     docker ps | grep frontend || exit 1
-        //                     rm image.tar
-        //                 '
-        //             """
-        //         }
-        //     }
-        // }
-        
-        stage('Deploy to ssh-web-server-jcloud') {
-            steps {
-                sshagent(['ssh-web-server-jcloud']) {
-                    sh """
-                        ssh -o StrictHostKeyChecking=no -p ${SSH_PORT} ubuntu@${SERVER_IP} '
-                            
-                            # Update the image tag in docker-compose.yaml
-                            sed -i "s|image: ${DOCKER_IMAGE}:.*|image: ${DOCKER_IMAGE}:${DOCKER_TAG}|" docker-compose.yaml
-                            
-                            # Stop and remove existing containers
-                            docker compose down
-                            
-                            # Start the updated containers
-                            docker compose up -d
-                            
-                            # Verify the frontend container is running
-                            docker compose ps | grep frontend || exit 1
-                            
-                            echo "Deployment completed"
-                        '
-                    """
                 }
             }
         }

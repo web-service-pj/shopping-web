@@ -4,10 +4,10 @@ pipeline {
     environment {
         SERVER_IP = credentials('jcloud-ip')
         SSH_PORT = credentials('backend-server-port')
-        DOCKER_IMAGE = "nohhye/backend"  // 예: johndoe/frontend
+        DOCKER_IMAGE = "nohhye/backend" 
         DOCKER_TAG = "v${env.BUILD_NUMBER}"
         SCANNER_HOME = tool 'SonarQube Scanner'
-        DOCKERHUB_CREDENTIALS = credentials('docker-hub') // Jenkins에 등록한 도커허브 인증 정보
+        DOCKERHUB_CREDENTIALS = credentials('docker-hub') 
     }
     
     stages {
