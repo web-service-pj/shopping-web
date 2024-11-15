@@ -140,6 +140,13 @@
 
 &nbsp;
 
+### 포인트 충전 및 이메일 인증
+<img src="/frontend/public/images/email.png" alt="이메일 인증">
+
+&nbsp;
+
+&nbsp;
+
 ### 매장 위치 정보
 <img src="/frontend/public/images/map.png" alt="매장 위치 정보">
 
