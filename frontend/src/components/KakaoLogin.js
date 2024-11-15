@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 
 const KAKAO_CLIENT_ID = 'bdefbf8f8e8a3420efdacb22f0fdc63e';
-const KAKAO_REDIRECT_URI = 'https://trendcore.store/oauth/kakao/callback';
+const KAKAO_REDIRECT_URI = 'https://www.trendcore.store/oauth/kakao/callback';
 
 const KakaoLogin = () => {
   useEffect(() => {
