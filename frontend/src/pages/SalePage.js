@@ -48,7 +48,7 @@ const SalePage = () => {
             // 상품 정보 포맷팅
             return {
               ...product,
-              image: product.w_path.split(',')[0].trim(),
+              image: product.w_path,
               brand: product.w_brand,
               name: product.w_name,
               price: totalStock === 0 ? '품절' : `${salePrice.toLocaleString()}원`,
