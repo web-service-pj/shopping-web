@@ -16,7 +16,7 @@ const KakaoCallback = () => {
         console.log('Sending request to:', 'https://www.trendcore.store/oauth/kakao/callback');
         
         const response = await axios.post(
-          'https://www.trendcore.store/oauth/kakao/callback', 
+          'api/auth/kakao', 
           { code },
           {
             headers: {
