@@ -140,6 +140,13 @@
 
 &nbsp;
 
+### 매장 위치 정보
+<img src="/frontend/public/images/map.png" alt="매장 위치 정보">
+
+&nbsp;
+
+&nbsp;
+
 ### 관리자 대시보드
 <img src="/frontend/public/images/admin.png" alt="관리자 페이지">
 
