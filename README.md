@@ -147,6 +147,13 @@
 
 &nbsp;
 
+### 내 정보 및 주문 정보 조회
+<img src="/frontend/public/images/mypage.png" alt="마이 페이지">
+
+&nbsp;
+
+&nbsp;
+
 ### 매장 위치 정보
 <img src="/frontend/public/images/map.png" alt="매장 위치 정보">
 
