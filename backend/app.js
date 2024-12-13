@@ -18,6 +18,8 @@ const authRoutes = require('./routes/auth');
 const crypto = require('crypto');
 const adminAuth = require('./routes/adminAuth');
 const transporter = require('./routes/mailer');
+const swaggerUi = require('swagger-ui-express');
+const specs = require('./swagger');
 
 dotenv.config();
 
@@ -43,6 +45,7 @@ app.use('/api/admin/*', adminAuth);
 app.use('/api/wears', adminAuth);
 app.use('/api/users', adminAuth);
 app.use('/api/buy', adminAuth);
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 app.get('/api', (req, res) => {
   res.send('쇼핑몰 API 서버');
